@@ -1,0 +1,10 @@
+Package: bbbs
+Title: Benthic Biomass and Body Size off SW Taiwan
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Chih-Lin", family = "Wei", role = c("aut", "cre"), email = "chihlinwei@gmail.com"),
+    person(given = "Jian-Xiang", family = "Liao", role = "aut", email = "jianxiangliao@gmail.com"))
+Description: This is a data and analysis package for the benthic biomass and body size off the SW Taiwan.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
