@@ -42,7 +42,7 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 ```
 
 # Resample macrofauna size data
-There are two reasons that we need to simulate the macrofauna size distribution. Firstly, we sampled, on average, three core tubes per cruise/station; however, it was not always the case. Therefore, we need to re-sample the individual size data to the average number of individuals in 3 core tubes.  Secondly, polychaetes are easy to break off; the size data of complete polychaete specimens were re-sampled to match the numbers of individual polychaete with head (prostomium).
+There are two reasons that we need to simulate the macrofauna size distribution. Firstly, we sampled, on average, three core tubes per cruise/station; however, it was not always the case. Therefore, we need to re-sample the individual size data to the average number of individuals in 3 core tubes.  Secondly, polychaetes are easy to break off. We re-sampled the size data of complete polychaetes to match to the numbers of individual polychaete with a head (prostomium).
 
 ```{r, fig.width=10, fig.height=8}
 # Size (complete macrofauna specimen)
@@ -96,7 +96,7 @@ ggplot(data=subset(mac_s, Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_112
 Only cruise 1096, 1114, and 1126 can be merged
 
 # Simulated meiofauna size distribtution
-Because not all specimens were measured for their sizes, the size distribution of nematodes (from 100 random individuals), harpacticoids and other taxa (as many as possible) were scaled to the total abundance in the samples by resampling the observed size measurement (with replacement).
+Because not all meiofauna specimens were measured for their sizes, the size distribution of nematodes (from 100 random individuals), harpacticoids, and other taxa (as many as possible) were scaled to the total abundance in three multicore tubes by re-sampling the observed size measurements (with replacement).
 
 ```{r, fig.width=10, fig.height=6}
 # Sorting data
@@ -144,6 +144,9 @@ mei_s <- ldply(simu)
 Both 1114 and 1126 meiofauna can be merged with macrofauna
 
 # Merge meiofauna and macrofauna
+
+We combine the simulated meiofauna and macrofauna size data to give the total metazoan sizes from three multicore tubes.
+
 ```{r, fig.width=10, fig.height=6}
 # OR1 1114, 1126
 si <- merge(cbind(Class="Meiofauna", mei_s), cbind(Class="Macrofauna", mac_s), all=T)

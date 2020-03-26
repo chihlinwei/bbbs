@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+The purpose of this code is to combine multiple spreadsheets of macrofauna or meiofauna size measurements (arranged by taxon) into a single sheet.
 
 ```{r}
 library(ggplot2)
