@@ -41,11 +41,9 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Construction of meiofauna + macrofauna size specturm
 
-Normalized biomass size specturm (NBSS) and idividual size distribtion (ISD) were computed using custom R functions from Edwards et al. (2017, Methods in Ecology and Evolution 1:57-67). A probability density function based on a bounded power law (PLB) distribution was fitted to the ISD of meiofauna using maximum likelihood estimation (MLE) to estimate the exponent b. The exponent b (estimated by MLE) is equivalent to the reression slope of the NBSS; however, comparison studies by Edwards et al. (2017) concluded that MLE method is the most accurate way to estimate the slope. 
-
-For normalized biomass size specturm (NBSS), individual size of macrofauna were binned by log2 transformation of their biomass. The total biomass of each bin was normalized by the width of the bin. The log10 normalized biomass was plotted against the log10 mid point of the size bin; however, the regression slope (and line) was not estimated from the NBSS. Instead, the slope (and line) was esimated by a customized probability density function using maximum likelyhood. 
-
-The same fitted line (with 95% confidence interval) was plotted on the individual size distribution, which rank the body size in decresing order to visualized the fit between the model and size data. 
+Normalized biomass size spectrum (NBSS) and individual size distribution (ISD) were computed using custom R functions from Edwards et al. (2017, Methods in Ecology and Evolution 1:57-67). A probability density function based on a bounded power law (PLB) distribution was fitted to the ISD of meiofauna+macrofauna using maximum likelihood estimation (MLE) to estimate the exponent b. The exponent b (determined by MLE) is equivalent to the regression slope of the NBSS; however, comparison studies by Edwards et al. (2017) concluded that MLE method is the most accurate way to estimate the slope.
+For normalized biomass size spectrum (NBSS), individual size of meiofauna+macrofauna were binned by log10 transformation of their biomass. The total biomass of each bin was normalized by the width of the bin. The log10 normalized biomass was plotted against the log10 midpoint of the size bin; however, the regression slope (and line) was not estimated from the NBSS. Instead, the slope (and line) was estimated by a customized probability density function using maximum likelihood.
+The same fitted line (with 95% confidence interval) was plotted on the individual size distribution, which ranks the body size in decreasing order to visualize the fit between the model and size data.
 
 # NBSS and ISD by cruise and habitat
 
