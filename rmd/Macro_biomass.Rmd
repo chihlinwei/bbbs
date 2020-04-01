@@ -1,0 +1,251 @@
+---
+title: "Macrofaunal Biomass"
+author: "Chih-Lin Wei"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###) 
+    toc_float: true
+    number_sections: true  ## if you want number sections at each table header
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+
+```{r}
+library(bbbs)
+library(ggplot2)
+library(plyr)
+library(doBy)
+library(readxl)
+library(swtmap)
+library(maptools)
+library(knitr)
+
+large <- theme(legend.title = element_text(size=20),
+        legend.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=20))
+
+# dark theme for ggplot
+dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
+        panel.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.title = element_text(colour = 'white', size=20),
+        legend.text = element_text(colour = 'white', size=20),
+        axis.title = element_text(colour = 'white', size=20),
+        axis.text = element_text(colour = 'white', size=20),
+        axis.ticks = element_line(colour = 'white'),
+        panel.border = element_rect(fill = 'NA', colour = 'white'), 
+        panel.grid.major = element_line(colour = 'gray30'),
+        panel.grid.minor = element_line(colour = 'gray20'))
+
+jet.colors <-colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+```
+
+# Mean density 
+## per cruise
+
+
+```{r}
+# Convert the numbers fo polychaete specimen (with head) to abundance
+pols <- subset(mac, Taxon=="Polychaeta" & (Condition=="FH" | Condition=="C" | Condition=="FHT"))
+pola <- summaryBy(Size~Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Abundance", keep.names = T)
+pola <- cbind(pola[, 1:4], Section="0-15", pola[, 5:6], Comment="")
+
+# Replace polycahete sorting abundance with correct abundance from size data
+sort <- read_excel("../excel/GPSC_macro_sorting_2019.12.16.xlsx", sheet=2)
+sort <- rbind(subset(sort, Taxon!="Polychaeta"), pola)
+# Total abundance by tube
+abun <- summaryBy(Abundance~Cruise+Station+Deployment+Tube, data=as.data.frame(sort), FUN=sum, keep.names = TRUE)
+depth <- read_excel("../excel/GPSC_macro_sorting_2019.12.16.xlsx", sheet=1)
+abun <- cbind(depth[match(paste(abun$Cruise, abun$Station), paste(depth$Cruise, depth$Station)),], abun)
+
+# Cruise 1151 has very low abundance, perhaps due to several severe flooding in Summer 2016?
+# Polychaete data not available for OR1 1151?
+dat <- subset(abun, Cruise=="OR1_1096"|Cruise=="OR1_1099"|Cruise=="OR1_1102"|Cruise=="OR1_1126")
+
+dat$Density <- dat$Abundance/dat$Area
+dat.mean <- summaryBy(Density+Longitude+Latitude+Depth+Date~Region+Habitat+Cruise+Station, data=dat, FUN=c(mean, sd, length))
+dat.mean$Date.mean <- strftime(as.POSIXct(dat.mean$Date.mean, origin = "1970-01-01", tz = "Asia/Taipei"), format="%Y-%m-%d")
+
+dat.mean <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Date.mean", "Density.length", "Density.mean", "Density.sd")]
+names(dat.mean) <- c("Region", "Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "Date", "n", "Density", "sd")
+
+# Bad core at OR1 1102 GS4 (sediment only 19 cm)
+bad <- with(dat.mean, Cruise=="OR1_1102"&Station=="GS4")
+dat.mean <- subset(dat.mean, !bad)
+
+ggplot(data=dat.mean, 
+       aes(x=Depth, y=Density, 
+           ymin=Density-sd, ymax=Density+sd,
+           colour=Habitat, fill=Habitat,
+           shape=Habitat))+
+  geom_point(size=5)+ 
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar()+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Density~(Ind~m^-2)))+
+  scale_y_log10()+
+  #facet_wrap(~Habitat, scales="free_x")+
+  theme_bw() %+replace% large %+replace% dark
+
+loc <- dat.mean
+coordinates(loc) <- c("Longitude", "Latitude")
+r <- crop(bathy, extent(120.1, 120.5, 22.1, 22.5))
+isobath<- rasterToContour(r, levels=c(seq(-1800, -200, by=200), 0))
+extra <- function(...){
+         panel.levelplot.raster(...)
+         sp.lines(isobath, col="gray30")
+         sp.points(loc, cex=3, pch=19, col=level.colors(loc$Density, at = 10^pretty(log10(loc$Density), 100), col.regions=jet.colors))}
+tbspplot(r, panel=extra)
+
+dat.mean$Longitude <- round(dat.mean$Longitude, 4)
+dat.mean$Latitude <- round(dat.mean$Latitude, 4)
+dat.mean$Depth <- round(dat.mean$Depth, 0)
+dat.mean$Density <- round(dat.mean$Density, 0)
+dat.mean$sd <- round(dat.mean$sd, 1)
+kable(dat.mean)
+```
+
+## Per station
+
+```{r}
+dat.mean.mean <- summaryBy(Density+Longitude+Latitude+Depth~Region+Habitat+Station, data=dat.mean, FUN=c(mean, sd, length))
+dat.mean.mean <- dat.mean.mean[,c("Region", "Habitat", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Density.length", "Density.mean", "Density.sd")]
+names(dat.mean.mean) <- c("Region", "Habitat", "Station", "Longitude", "Latitude", "Depth","n", "Density", "sd")
+
+ggplot(data=subset(dat.mean.mean), 
+       aes(x=Depth, y=Density, 
+           ymin=Density-sd, ymax=Density+sd,
+           colour=Habitat, fill=Habitat, shape=Habitat))+
+  geom_point(size=5)+ 
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar()+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Density~(Ind~m^-2)))+
+  scale_y_log10()+
+  #facet_wrap(~Habitat, scales="free_x")+
+  theme_bw() %+replace% large %+replace% dark
+
+loc <- dat.mean.mean
+coordinates(loc) <- c("Longitude", "Latitude")
+
+extra <- function(...){
+         panel.levelplot.raster(...)
+         sp.lines(isobath, col="gray30")
+         sp.points(loc, cex=3, pch=19, col=level.colors(loc$Density, at = 10^pretty(log10(loc$Density), 100), col.regions=jet.colors))
+}
+tbspplot(r, panel=extra)
+
+dat.mean.mean$Longitude <- round(dat.mean.mean$Longitude, 4)
+dat.mean.mean$Latitude <- round(dat.mean.mean$Latitude, 4)
+dat.mean.mean$Depth <- round(dat.mean.mean$Depth, 0)
+dat.mean.mean$Density <- round(dat.mean.mean$Density, 0)
+dat.mean.mean$sd <- round(dat.mean.mean$sd, 1)
+kable(dat.mean.mean)
+```
+
+# Mean biomass 
+## Per cruise
+
+```{r}
+dat <- subset(mac, Size<100)
+
+# Cruise 1151 has very low abundance, perhaps due to several severe flooding in Summer 2016?
+dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1099"|Cruise=="OR1_1102"|Cruise=="OR1_1126")
+
+dat.sum <- summaryBy(Size+Area+Longitude+Latitude+Depth~Region+Habitat+Cruise+Station+Deployment+Tube, data=dat, FUN=c(sum, mean))
+dat.sum$Biomass <- dat.sum$Size.sum/dat.sum$Area.mean
+
+# Exclude 2 samples from OR1 1196 GC3 with unusally high biomass
+#dat.sum <- subset(dat.sum, !(Cruise=="OR1_1096" & Station=="GC3" & (Tube=="2"|Tube=="3")))
+
+dat.mean <- summaryBy(Biomass+Longitude.mean+Latitude.mean+Depth.mean~Region+Habitat+Cruise+Station, data=dat.sum, FUN=c(mean, sd, length))
+
+# Bad core at OR1 1102 GS4 (sediment only 19 cm)
+bad <- with(dat.mean, Cruise=="OR1_1102"&Station=="GS4")
+dat.mean <- subset(dat.mean, !bad)
+
+out <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Longitude.mean.mean", "Latitude.mean.mean", "Depth.mean.mean", "Biomass.length", "Biomass.mean", "Biomass.sd")]
+names(out) <- c("Region", "Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd")
+
+ggplot(data=out, 
+       aes(x=Depth, y=Biomass, 
+           ymin=(Biomass-sd), ymax=(Biomass+sd),
+           shape=Habitat, colour=Habitat, fill=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar()+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Biomass~(mg~m^-2)))+
+  scale_y_log10()+
+  #facet_wrap(~Habitat, scales="free_x")+
+  theme_bw() %+replace% large %+replace% dark
+
+loc <- out
+coordinates(loc) <- c("Longitude", "Latitude")
+
+extra <- function(...){
+         panel.levelplot.raster(...)
+         sp.lines(isobath, col="gray30")
+         sp.points(loc, cex=3, pch=19, col=level.colors(loc$Biomass, at = 10^pretty(log10(loc$Biomass), 100), col.regions=jet.colors))
+}
+tbspplot(r, panel=extra)
+
+out$Longitude <- round(out$Longitude, 4)
+out$Latitude <- round(out$Latitude, 4)
+out$Depth <- round(out$Depth, 0)
+out$Biomass <- round(out$Biomass, 0)
+out$sd <- round(out$sd, 1)
+kable(out, align="c")
+```
+
+## Per station
+
+```{r}
+dat.mean <- summaryBy(Biomass+Longitude+Latitude+Depth~Region+Habitat+Station, data=out, FUN=c(mean, sd, length))
+out <- dat.mean[, c("Region", "Habitat", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Biomass.length", "Biomass.mean", "Biomass.sd")]
+names(out) <- c("Region", "Habitat", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd")
+
+ggplot(data=out, 
+       aes(x=Depth, y=Biomass, 
+           ymin=(Biomass-sd), ymax=(Biomass+sd),
+           shape=Habitat, colour=Habitat, fill=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  scale_shape_manual(values=c(19,1))+
+  geom_errorbar()+
+  scale_linetype_manual(values=c(1,2))+
+  labs(x="Depth (m)", y=expression(Biomass~(mg~m^-2)))+
+  scale_y_log10()+
+  #facet_wrap(~Habitat, scales="free_x")+
+  theme_bw() %+replace% large %+replace% dark
+
+loc <- out
+coordinates(loc) <- c("Longitude", "Latitude")
+
+extra <- function(...){
+         panel.levelplot.raster(...)
+         sp.lines(isobath, col="gray30")
+         sp.points(loc, cex=3, pch=19, col=level.colors(loc$Biomass, at = 10^pretty(log10(loc$Biomass), 100), col.regions=jet.colors))
+}
+tbspplot(r, panel=extra)
+
+out$Longitude <- round(out$Longitude, 4)
+out$Latitude <- round(out$Latitude, 4)
+out$Depth <- round(out$Depth, 0)
+out$Biomass <- round(out$Biomass, 0)
+out$sd <- round(out$sd, 1)
+kable(out, align="c")
+```
+
