@@ -52,7 +52,36 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 # https://github.com/andrew-edwards/fitting-size-spectra
 source("PLBfunctions.r")
 
-hab <- splitBy(~Habitat, data=subset(si, Size>5e-4))
+hab <- splitBy(~Habitat, data=si)
+wt <- lapply(hab, FUN=function(x)x$Wt)
+out <- lapply(wt, FUN=LBNbiom.method)
+nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
+info <- ldply(strsplit(nbss$.id, split="[|]"))
+names(info) <- "Habitat"
+nbss <- cbind(info, nbss[, -1])
+
+#wt <- wt[unlist(lapply(wt, length))>9]
+out <- lapply(wt, FUN=MLE.method)
+# size specutrum slope estimate by MLE
+#lapply(out, FUN=function(x)x[1:2])
+plb <- ldply(lapply(out, FUN=function(x)x$PLB))
+info <- ldply(strsplit(plb$.id, split="[|]"))
+names(info) <- "Habitat"
+plb <- cbind(info, plb[, -1])
+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+  geom_point(size=3)+
+  geom_path()+
+  scale_shape_manual(values=c(19,1))+
+  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
+  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
+  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
+  theme_bw() %+replace% large %+replace% dark
+
+# Remove sisze < 5e-4
+
+hab <- splitBy(~Habitat, data=subset(si, Size>1e-3))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=LBNbiom.method)
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
