@@ -60,30 +60,14 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
 nbss <- cbind(info, nbss[, -1])
 
-#wt <- wt[unlist(lapply(wt, length))>9]
-out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-#lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- "Habitat"
-plb <- cbind(info, plb[, -1])
-
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  geom_path()+
-  scale_shape_manual(values=c(19,1))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black", "gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 
-<<<<<<< HEAD
-# Remove sisze < 5e-4
-=======
 # Only use size > 1e-3
->>>>>>> 583f1dc7f3e655c5b4c6e206fc1beb89c8111286
 
 hab <- splitBy(~Habitat, data=subset(si, Size>1e-3))
 wt <- lapply(hab, FUN=function(x)x$Wt)
@@ -102,14 +86,14 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- "Habitat"
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 
@@ -121,16 +105,16 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- "Habitat"
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
   #facet_wrap(~Cruise, scales="free")+
   scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
   scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 # NBSS and ISD by cruise and habitat
@@ -144,25 +128,13 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 nbss <- cbind(info, nbss[, -1])
 
-#wt <- wt[unlist(lapply(wt, length))>9]
-out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-#lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- c("Cruise", "Habitat")
-plb <- cbind(info, plb[, -1])
-
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path()+
-  scale_shape_manual(values=c(19,1))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  scale_colour_manual(values=c("black", "gray"))+
   facet_wrap(~Cruise)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 
 # Only use size > 1e-3
 
@@ -183,15 +155,15 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   facet_wrap(~Cruise)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.width=10, fig.height=5}
@@ -202,16 +174,85 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
   facet_wrap(~Cruise, scales="free")+
   scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
   scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
+```
+
+# NBSS and ISD by depth strata and habitat
+
+```{r, fig.width=10, fig.height=5}
+hab <- splitBy(~Habitat+Depth.zone, data=si)
+wt <- lapply(hab, FUN=function(x)x$Wt)
+out <- lapply(wt, FUN=LBNbiom.method)
+nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
+info <- ldply(strsplit(nbss$.id, split="[|]"))
+names(info) <- c("Habitat", "Depth")
+nbss <- cbind(info, nbss[, -1])
+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
+  geom_point(size=3)+
+  geom_path()+
+  scale_colour_manual(values=c("black", "gray"))+
+  facet_wrap(~Depth, scales="free")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
+  theme_bw() %+replace% large #%+replace% dark
+
+# Only use size > 1e-4
+
+hab <- splitBy(~Habitat+Depth.zone, data=subset(si, Size>1e-4))
+wt <- lapply(hab, FUN=function(x)x$Wt)
+out <- lapply(wt, FUN=LBNbiom.method)
+nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
+info <- ldply(strsplit(nbss$.id, split="[|]"))
+names(info) <- c("Habitat", "Depth")
+nbss <- cbind(info, nbss[, -1])
+
+#wt <- wt[unlist(lapply(wt, length))>9]
+out <- lapply(wt, FUN=MLE.method)
+# size specutrum slope estimate by MLE
+lapply(out, FUN=function(x)x[1:2])
+plb <- ldply(lapply(out, FUN=function(x)x$PLB))
+info <- ldply(strsplit(plb$.id, split="[|]"))
+names(info) <- c("Habitat", "Depth")
+plb <- cbind(info, plb[, -1])
+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
+  geom_point(size=3)+
+  scale_colour_manual(values=c("black", "gray"))+
+  geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
+  geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
+  geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  facet_wrap(~Depth, scales="free")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
+  theme_bw() %+replace% large #%+replace% dark
+```
+
+```{r, fig.width=10, fig.height=5}
+# Rank individual weight
+SortWt <- lapply(hab, FUN=function(x)cbind(rank=1:length(x$Wt), weight=sort(x$Wt, decreasing=TRUE)))
+SortWt <- ldply(SortWt)
+info <- ldply(strsplit(SortWt$.id, split="[|]"))
+names(info) <- c("Habitat", "Depth")
+SortWt <- cbind(info, SortWt[, -1])
+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
+  geom_point(size=2)+
+  scale_colour_manual(values=c("black", "gray"))+
+  geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
+  geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
+  geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
+  facet_wrap(~Depth, scales="free")+
+  scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
+  scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 # NBSS and ISD by cruise and depth strata (or station)
@@ -225,25 +266,13 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-#wt <- wt[unlist(lapply(wt, length))>9]
-out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- c("Cruise", "Habitat", "Depth")
-plb <- cbind(info, plb[, -1])
-
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path()+
-  scale_shape_manual(values=c(19,1))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  scale_colour_manual(values=c("black", "gray"))+
   facet_grid(Cruise~Depth)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 
 # Only use size > 1e-3
 
@@ -264,15 +293,15 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   facet_grid(Cruise~Depth)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.width=10, fig.height=5}
@@ -283,16 +312,16 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
   facet_grid(Cruise~Depth)+
   scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
   scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 # NBSS and ISD by habitat and dominant taxa
@@ -313,25 +342,16 @@ nbss <- cbind(info, nbss[, -1])
 
 wt <- wt[unlist(lapply(wt, length))>21]
 out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- c("Habitat", "Category")
-plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  geom_path()+
-  scale_shape_manual(values=c(19,1))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black", "gray"))+
   facet_wrap(~Category, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 
-# Only use size > 1e-3
+# Only use size > 1e-3 (harpacticoids), 1e-4 (nematods), and 1e-2 (polychaetes)
 
 hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Size>1e-2))
 hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126")&Size>1e-4))
@@ -355,15 +375,15 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat", "Category")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   facet_wrap(~Category, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.width=10, fig.height=5}
@@ -374,14 +394,14 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Habitat", "Category")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black", "gray"))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
   facet_wrap(~Category, scales="free_x")+
   scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
   scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```

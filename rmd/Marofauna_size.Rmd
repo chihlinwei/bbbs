@@ -66,22 +66,10 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>9]
-out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- c("Habitat")
-plb <- cbind(info, plb[, -1])
-
-ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
-  geom_path()+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
-  scale_shape_manual(values=c(19,1))+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
@@ -104,12 +92,12 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 ```
@@ -123,12 +111,12 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Habitat")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=3)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   scale_x_log10(expression(Individual~weight~(mg)))+
   scale_y_log10("Individual rank", limits=c(1, NA))+
   theme_bw() %+replace% large %+replace% rotate #%+replace% dark 
@@ -146,23 +134,11 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>9]
-out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- c("Cruise", "Habitat")
-plb <- cbind(info, plb[, -1])
-
-ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
-  geom_path()+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  geom_path(size=1)+
   facet_wrap(~Cruise, scales="free")+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
@@ -185,13 +161,13 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   facet_wrap(~Cruise, scales="free")+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 ```
@@ -204,12 +180,12 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=3)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   facet_wrap(~Cruise, scales="free")+
   scale_x_log10(expression(Individual~weight~(mg)))+
   scale_y_log10("Individual rank", limits=c(1, NA))+
@@ -227,22 +203,10 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>10]
-out <- lapply(wt, FUN=MLE.method)
-# size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
-plb <- ldply(lapply(out, FUN=function(x)x$PLB))
-info <- ldply(strsplit(plb$.id, split="[|]"))
-names(info) <- c("Habitat", "Depth")
-plb <- cbind(info, plb[, -1])
-
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  geom_path()+
-  scale_shape_manual(values=c(19,1))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
   facet_wrap(~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw()%+replace% large #%+replace% dark
@@ -266,9 +230,9 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
@@ -285,12 +249,12 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=3)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   facet_wrap(~Depth, scales="free")+
   scale_x_log10(expression(Individual~weight~(mg)))+
   scale_y_log10("Individual rank", limits=c(1, NA))+
@@ -308,7 +272,25 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>10]
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
+  geom_point(size=3)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
+  facet_grid(Cruise~Depth, scales="free")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
+  theme_bw()%+replace% large #%+replace% dark
+
+# Only keep size < 1e-2
+
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac, Size > 1e-2))
+wt <- lapply(hab, FUN=function(x)x$Wt)
+out <- lapply(wt, FUN=LBNbiom.method)
+nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
+info <- ldply(strsplit(nbss$.id, split="[|]"))
+names(info) <- c("Cruise", "Habitat", "Depth")
+nbss <- cbind(info, nbss[, -1])
+
+wt <- wt[unlist(lapply(wt, length))>56]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
@@ -317,13 +299,12 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  geom_path()+
-  scale_shape_manual(values=c(19,1))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
-  #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
+  scale_colour_manual(values=c("black","gray"))+
+  geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
+  geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
+  geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   facet_grid(Cruise~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw()%+replace% large #%+replace% dark
@@ -337,12 +318,12 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=3)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   facet_grid(Cruise~Depth, scales="free")+
   scale_x_log10(expression(Individual~weight~(mg)))+
   scale_y_log10("Individual rank", limits=c(1, NA))+
@@ -369,10 +350,10 @@ info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat", "Taxon")
 plb <- cbind(info, plb[, -1])
 
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, shape=Habitat, colour=Habitat))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
-  geom_path()+
-  scale_shape_manual(values=c(19,1))+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
   #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   #geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
@@ -389,9 +370,9 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- c("Habitat", "Taxon")
 SortWt <- cbind(info, SortWt[, -1])
 
-ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
+ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_point(size=2)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
@@ -403,7 +384,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, shape=Habitat, colour=Habitat))+
 
 # Mean body size of macrofauna
 
-```{r}
+```{r, fig.width=7, fig.height=5}
 library(knitr)
 dat.mean <- summaryBy(Size+Depth~Region+Habitat+Cruise+Station, data=mac, FUN=c(mean, sd, length))
 
@@ -417,11 +398,11 @@ gaoping <- with(dat.mean, Region=="Gaoping")
 ggplot(data=subset(dat.mean, gaoping&!(bad|bad2)), 
        aes(x=Depth.mean, y=Size.mean, 
            ymin=Size.mean-Size.sd, ymax=Size.mean+Size.sd,
-           shape=Habitat, linetype=Habitat))+
+           colour=Habitat, linetype=Habitat))+
   #geom_point(data=subset(dat.mean, bad2), size=5, colour="red")+
   #annotate("text", label = "OR1-1151", x = 1500, y = 0.1, size = 8, colour = "red")+
   geom_point(size=5)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   geom_errorbar()+
   stat_smooth(method="lm", formula=y~x, alpha=0.2, colour="gray20")+
   scale_linetype_manual(values=c(1,2))+
@@ -437,14 +418,14 @@ out$SD <- round(out$SD, 3)
 kable(out, align="c")
 ```
 
-```{r, fig.width=8}
+```{r, fig.width=7, fig.height=5}
 dat.mean <- summaryBy(Size+Depth~Region+Habitat+Station, data=mac, FUN=c(mean, sd, length))
 ggplot(data=subset(dat.mean, Region=="Gaoping"), 
        aes(x=Depth.mean, y=Size.mean, 
            ymin=Size.mean-Size.sd, ymax=Size.mean+Size.sd,
-           shape=Habitat, linetype=Habitat))+
+           colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  scale_shape_manual(values=c(19,1))+
+  scale_colour_manual(values=c("black","gray"))+
   geom_errorbar()+
   stat_smooth(method="lm", formula=y~x, alpha=0.2, colour="gray20")+
   scale_linetype_manual(values=c(1,2))+
