@@ -8,3 +8,4 @@ Description: This is a data and analysis package for the benthic biomass and bod
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.0

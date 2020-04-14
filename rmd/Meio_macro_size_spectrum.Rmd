@@ -14,6 +14,9 @@ library(bbbs)
 library(ggplot2)
 library(plyr)
 library(doBy)
+#library(devtools)
+#install_github("andrew-edwards/sizeSpectra")
+library(sizeSpectra)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -36,6 +39,8 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
         panel.border = element_rect(fill = 'NA', colour = 'white'), 
         panel.grid.major = element_line(colour = 'gray30'),
         panel.grid.minor = element_line(colour = 'gray20'))
+# log2 bin
+l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 ```
 
 
@@ -50,11 +55,12 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 ```{r, fig.width=7, fig.height=5}
 # Use functions from Edwards etal. (2017) Methods in Ecology and Evolution 1:57-67
 # https://github.com/andrew-edwards/fitting-size-spectra
-source("PLBfunctions.r")
+#source("PLBfunctions.r")
 
 hab <- splitBy(~Habitat, data=si)
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+bks <- l2b(unlist(wt))
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -67,11 +73,11 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
-# Only use size > 1e-3
+# Only use Wt> 1.220703e-04
 
-hab <- splitBy(~Habitat, data=subset(si, Size>1e-3))
+hab <- splitBy(~Habitat, data=subset(si, Wt>1.220703e-04))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -122,7 +128,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```{r, fig.width=7, fig.height=5}
 hab <- splitBy(~Cruise+Habitat, data=si)
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
@@ -136,11 +142,11 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
-# Only use size > 1e-3
+# Only use Wt> 1.220703e-04
 
-hab <- splitBy(~Cruise+Habitat, data=subset(si, Size>1e-3))
+hab <- splitBy(~Cruise+Habitat, data=subset(si, Wt>1.220703e-04))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
@@ -191,7 +197,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```{r, fig.width=10, fig.height=5}
 hab <- splitBy(~Habitat+Depth.zone, data=si)
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
@@ -205,11 +211,11 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
-# Only use size > 1e-4
+# Only use Wt> 1e-4
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(si, Size>1e-4))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(si, Wt>1e-4))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
@@ -260,7 +266,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```{r, fig.width=10, fig.height=5}
 hab <- splitBy(~Cruise+Habitat+Depth.zone, data=si)
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
@@ -270,15 +276,15 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path()+
   scale_colour_manual(values=c("black", "gray"))+
-  facet_grid(Cruise~Depth)+
+  facet_grid(Cruise~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
-# Only use size > 1e-3
+# Only use Wt> 1.220703e-04
 
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(si, Size>5e-4))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(si, Wt>5e-4))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
@@ -299,7 +305,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
-  facet_grid(Cruise~Depth)+
+  facet_grid(Cruise~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 ```
@@ -318,7 +324,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
-  facet_grid(Cruise~Depth)+
+  facet_grid(Cruise~Depth, scales="free")+
   scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
   scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
   theme_bw() %+replace% large #%+replace% dark
@@ -334,7 +340,7 @@ hab <- rbind(ldply(hab_nem), ldply(hab_har), ldply(hab_pol))
 hab <- splitBy(~Habitat+Category, hab)
 
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Category")
@@ -351,16 +357,16 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 
-# Only use size > 1e-3 (harpacticoids), 1e-4 (nematods), and 1e-2 (polychaetes)
+# Only use Wt> 1.220703e-04 (harpacticoids), 1e-4 (nematods), and 1e-2 (polychaetes)
 
-hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Size>1e-2))
-hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126")&Size>1e-4))
-hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Size>1e-3))
+hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1e-2))
+hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126")&Wt>1e-4))
+hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1.220703e-04))
 hab <- rbind(ldply(hab_nem), ldply(hab_har), ldply(hab_pol))
 hab <- splitBy(~Habitat+Category, hab)
 
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Category")

@@ -19,6 +19,9 @@ library(ggplot2)
 library(plyr)
 library(doBy)
 library(readxl)
+#library(devtools)
+#install_github("andrew-edwards/sizeSpectra")
+library(sizeSpectra)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -39,6 +42,8 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
         panel.border = element_rect(fill = 'NA', colour = 'white'), 
         panel.grid.major = element_line(colour = 'gray30'),
         panel.grid.minor = element_line(colour = 'gray20'))
+# log2 bin
+l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 ```
 
 # Construction of meiofauna and macrofauna size specturm
@@ -54,12 +59,14 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 ```{r, fig.width=7, fig.height=5}
 # Use functions from Edwards etal. (2017) Methods in Ecology and Evolution 1:57-67
 # https://github.com/andrew-edwards/fitting-size-spectra
-source("PLBfunctions.r")
+#source("PLBfunctions.r")
+
+bks <- l2b(si$Wt)
 
 # Macrofauna
 hab <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -68,7 +75,7 @@ nbss_mac <- cbind(info, nbss[, -1])
 # Meiofauna
 hab <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -91,10 +98,10 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=H
 ## Removing the small size classes from macrofauna and meiofauna
 
 ```{r}
-# Macrofauna > 1e-2
-hab <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna" & Size > 1e-2))
+# Macrofauna > 7.812500e-03
+hab <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna" & Wt> 7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -115,10 +122,10 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- "Habitat"
 SortWt_mac <- cbind(info, SortWt[, -1])
 
-# Meiofauna > 1e-4
-hab <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna" & Size > 1.5e-4))
+# Meiofauna > 1.220703e-04
+hab <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna" & Wt> 1.220703e-04))
 wt <- lapply(hab, FUN=function(x)x$Wt)
-out <- lapply(wt, FUN=LBNbiom.method)
+out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
