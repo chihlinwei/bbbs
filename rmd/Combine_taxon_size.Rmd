@@ -67,7 +67,7 @@ Category[Category=="Amphipoda"|Category=="Cumacea"|Category=="Isopoda"|Category=
 Category[Category=="Oligochaeta"|Category=="Nemertea"|Category=="Sipuncula"|Category=="Aplacophora"|Category=="Ostracoda"] <- "Others"
 
 mac <- cbind(Category, mac)
-mac <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1099"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
+mac <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 
 # Size (complete specimen)
 mac_s <- subset(mac, Condition=="C")
@@ -78,7 +78,7 @@ ggplot(data=mac_s,
   geom_density(alpha=0.5)+
   facet_wrap(~Cruise, scales="free_y")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.width=10, fig.height=6}
@@ -88,9 +88,9 @@ ggplot(data=subset(mac_s, Category=="Polychaeta"),
   geom_density(alpha=0.5)+
   facet_wrap(~Cruise, scales="free")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
-No complete polychaete specimens in canyon during cruise 1099 and 1102.
+No complete polychaete specimens during cruise 1102 in canyon. 
 
 # Observed meiofauna size distribution
 100 nematodes were randomly selected to measured body size. 
@@ -123,7 +123,7 @@ ggplot(data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"),
   geom_density(alpha=0.5)+
   facet_grid(Cruise~Category)+
   labs(y="Frequency", x=expression(Log~body~size~(mg~individual^-1)))+
-  theme_bw()%+replace% large %+replace% dark
+  theme_bw()%+replace% large #%+replace% dark
 ```
 
 ```{r}

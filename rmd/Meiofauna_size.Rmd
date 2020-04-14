@@ -72,6 +72,13 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat")
 nbss <- cbind(info, nbss[, -1])
 
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
@@ -96,6 +103,13 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
@@ -137,6 +151,14 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 nbss <- cbind(info, nbss[, -1])
 
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Cruise)+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
@@ -162,6 +184,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Cruise)+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
@@ -205,6 +235,14 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path(size=1)+
@@ -230,6 +268,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -273,6 +319,14 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path(size=1)+
@@ -299,6 +353,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -342,6 +404,14 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Category")
 nbss <- cbind(info, nbss[, -1])
 
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Category, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path(size=1)+
@@ -368,6 +438,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Category")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Category, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+

@@ -1,5 +1,5 @@
 ---
-title: "Macrofauna Size Spectrum & Biomass for OR1 1096, 1099, 1102, 1114, 1126"
+title: "Macrofauna Size Spectrum & Biomass for OR1 1096, 1102, 1114, 1126"
 author: "Chih-Lin Wei"
 date: "`r Sys.Date()`"
 output: 
@@ -63,7 +63,7 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 # https://github.com/andrew-edwards/fitting-size-spectra
 #source("PLBfunctions.r")
 
-hab <- splitBy(~Habitat, data=mac)
+hab <- splitBy(~Habitat, data=subset(mac, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 bks <- l2b(unlist(wt))
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
@@ -71,6 +71,13 @@ nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat")
 nbss <- cbind(info, nbss[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
@@ -81,7 +88,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 
 # Only keep Wt > 7.812500e-03
 
-hab <- splitBy(~Habitat, data=subset(mac, Wt>7.812500e-03))
+hab <- splitBy(~Habitat, data=subset(mac, Condition=="C" &Wt>7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -96,6 +103,13 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
@@ -131,13 +145,21 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 
 ```{r, fig.width=10, fig.height=8}
 
-hab <- splitBy(~Cruise+Habitat, data=subset(mac, Cruise!="OR1_1099"))
+hab <- splitBy(~Cruise+Habitat, data=subset(mac, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 nbss <- cbind(info, nbss[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Cruise, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
@@ -149,7 +171,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 
 # Only keep Wt > 7.812500e-03
 
-hab <- splitBy(~Cruise+Habitat, data=subset(mac, Cruise!="OR1_1099" & Wt>7.812500e-03))
+hab <- splitBy(~Cruise+Habitat, data=subset(mac, Condition=="C" & Wt>7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -164,6 +186,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Cruise, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
@@ -199,13 +229,21 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 # NBSS and ISD by habitat and depth strata
 
 ```{r, fig.width=8, fig.height=6}
-hab <- splitBy(~Habitat+Depth.zone, data=mac)
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -217,7 +255,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 
 # Only keep Wt >7.812500e-03
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Wt>7.812500e-03))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Condition=="C" & Wt>7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -232,6 +270,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -267,13 +313,21 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 # NBSS and ISD by cruise, habitat and depth strata
 
 ```{r, fig.width=10, fig.height=8}
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=mac)
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -301,6 +355,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Depth.zone, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -336,7 +398,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 # NBSS and ISD by habitat and dominant taxa
 
 ```{r, fig.width=12, fig.height=8}
-hab <- splitBy(~Habitat+Taxon, data=mac)
+hab <- splitBy(~Habitat+Taxon, data=subset(mac, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -344,7 +406,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Taxon")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>10]
+wt <- wt[unlist(lapply(wt, length))>7]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
@@ -352,6 +414,14 @@ plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- c("Habitat", "Taxon")
 plb <- cbind(info, plb[, -1])
+
+ggplot(data=ldply(hab), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_grid(Cruise~Category, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -389,18 +459,11 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 
 ```{r, fig.width=7, fig.height=5}
 library(knitr)
-dat.mean <- summaryBy(Size+Depth~Region+Habitat+Cruise+Station, data=mac, FUN=c(mean, sd, length))
+dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Cruise+Station, data=subset(mac, Condition=="C"), FUN=c(mean, sd, length))
 
-# Bad core at OR1 1102 GS4 (sediment only 19 cm)
-bad <- with(dat.mean, Cruise=="OR1_1102"&Station=="GS4")
-# Cruise 1151 has very low abundance, perhaps due to several severe flooding in Summer 2016?
-bad2 <- with(dat.mean, Cruise=="OR1_1151")
-# Gaping data only
-gaoping <- with(dat.mean, Region=="Gaoping")
-
-ggplot(data=subset(dat.mean, gaoping&!(bad|bad2)), 
-       aes(x=Depth.mean, y=Size.mean, 
-           ymin=Size.mean-Size.sd, ymax=Size.mean+Size.sd,
+ggplot(data=dat.mean, 
+       aes(x=Depth.mean, y=Wt.mean, 
+           ymin=Wt.mean-Wt.sd, ymax=Wt.mean+Wt.sd,
            colour=Habitat, linetype=Habitat))+
   #geom_point(data=subset(dat.mean, bad2), size=5, colour="red")+
   #annotate("text", label = "OR1-1151", x = 1500, y = 0.1, size = 8, colour = "red")+
@@ -413,7 +476,7 @@ ggplot(data=subset(dat.mean, gaoping&!(bad|bad2)),
   scale_y_log10()+
   theme_bw() %+replace% large
 
-out <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Depth.mean", "Size.length", "Size.mean", "Size.sd")]
+out <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Depth.mean", "Wt.length", "Wt.mean", "Wt.sd")]
 names(out) <- c("Region", "Habitat", "Cruise", "Station", "Depth", "n", "Mean Size", "SD")
 out$Depth <- round(out$Depth, 0)
 out$`Mean Size` <- round(out$`Mean Size`, 2)
@@ -422,10 +485,10 @@ kable(out, align="c")
 ```
 
 ```{r, fig.width=7, fig.height=5}
-dat.mean <- summaryBy(Size+Depth~Region+Habitat+Station, data=mac, FUN=c(mean, sd, length))
+dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Station, data=mac, FUN=c(mean, sd, length))
 ggplot(data=subset(dat.mean, Region=="Gaoping"), 
-       aes(x=Depth.mean, y=Size.mean, 
-           ymin=Size.mean-Size.sd, ymax=Size.mean+Size.sd,
+       aes(x=Depth.mean, y=Wt.mean, 
+           ymin=Wt.mean-Wt.sd, ymax=Wt.mean+Wt.sd,
            colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
   scale_colour_manual(values=c("black","gray"))+
@@ -436,7 +499,7 @@ ggplot(data=subset(dat.mean, Region=="Gaoping"),
   scale_y_log10()+
   theme_bw() %+replace% large
 
-out <- dat.mean[, c("Region", "Habitat", "Station", "Depth.mean", "Size.length", "Size.mean", "Size.sd")]
+out <- dat.mean[, c("Region", "Habitat", "Station", "Depth.mean", "Wt.length", "Wt.mean", "Wt.sd")]
 names(out) <- c("Region", "Habitat", "Station", "Depth", "n", "Mean Size", "SD")
 out$Depth <- round(out$Depth, 0)
 out$`Mean Size` <- round(out$`Mean Size`, 2)
