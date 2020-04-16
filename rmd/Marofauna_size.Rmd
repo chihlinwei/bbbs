@@ -50,13 +50,14 @@ l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 
 # Construction of macrofauna size specturm
 
-Normalized biomass size spectrum (NBSS) and individual size distribution (ISD) were computed using custom R functions from Edwards et al. (2017, Methods in Ecology and Evolution 1:57-67). A probability density function based on a bounded power law (PLB) distribution was fitted to the ISD of macrofauna using maximum likelihood estimation (MLE) to estimate the exponent b. The exponent b (determined by MLE) is equivalent to the regression slope of the NBSS; however, comparison studies by Edwards et al. (2017) concluded that MLE method is the most accurate way to estimate the slope. 
+Normalized biomass size spectrum (NBSS) and individual size distribution (ISD) were computed using R package sizeSpectra (Edwards et al., 2017, Methods in Ecology and Evolution 1:57-67). A probability density function based on a bounded power law (PLB) distribution was fitted to the ISD of macrofauna using maximum likelihood estimation (MLE) to estimate the exponent b. The exponent b (determined by MLE) is equivalent to the regression slope of the NBSS; however, comparison studies by Edwards et al. (2017) concluded that MLE method is the most accurate way to estimate the slope. 
 
 For normalized biomass size spectrum (NBSS), individual size of macrofauna were binned by log2 transformation of their biomass. The total biomass of each bin was normalized by the width of the bin. The log10 normalized biomass was plotted against the log10 midpoint of the size bin; however, the regression slope (and line) was not estimated from the NBSS. Instead, the slope (and line) was estimated by a customized probability density function using maximum likelihood. 
 
 The same fitted line (with 95% confidence interval) was plotted on the individual size distribution, which ranks the body size in decreasing order to visualized the fit between the model and size data. 
 
 # NBSS and ISD by habitat
+## All size classes
 
 ```{r, fig.width=7, fig.height=5}
 # Use functions from Edwards etal. (2017) Methods in Ecology and Evolution 1:57-67
@@ -79,13 +80,24 @@ ggplot(data=ldply(hab),
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Habitat))+
+  geom_point(size=5)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
   scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
+```
 
+## Size classes > 7.812500e-03
+
+```{r, fig.width=7, fig.height=5}
 # Only keep Wt > 7.812500e-03
 
 hab <- splitBy(~Habitat, data=subset(mac, Condition=="C" &Wt>7.812500e-03))
@@ -119,10 +131,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
-```
 
-
-```{r, fig.width=7, fig.height=5}
 # Rank individual weight
 SortWt <- lapply(hab, FUN=function(x)cbind(rank=1:length(x$Wt), weight=sort(x$Wt, decreasing=TRUE)))
 SortWt <- ldply(SortWt)
@@ -142,6 +151,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```
 
 # NBSS and ISD by cruise and habitat
+## All size classes
 
 ```{r, fig.width=10, fig.height=8}
 
@@ -161,6 +171,14 @@ ggplot(data=ldply(hab),
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Habitat))+
+  geom_point(size=5)+
+  geom_path(size=1)+
+  facet_wrap(~Cruise, scales="free")+
+  scale_colour_manual(values=c("black","gray"))+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw() %+replace% large #%+replace% dark
+
 ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
@@ -168,7 +186,11 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
+```
 
+## Size classes > 7.812500e-03
+
+```{r, fig.width=10, fig.height=8}
 # Only keep Wt > 7.812500e-03
 
 hab <- splitBy(~Cruise+Habitat, data=subset(mac, Condition=="C" & Wt>7.812500e-03))
@@ -204,9 +226,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   scale_colour_manual(values=c("black","gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
-```
 
-```{r, fig.width=10, fig.height=8}
 # Rank individual weight
 SortWt <- lapply(hab, FUN=function(x)cbind(rank=1:length(x$Wt), weight=sort(x$Wt, decreasing=TRUE)))
 SortWt <- ldply(SortWt)
@@ -227,6 +247,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```
 
 # NBSS and ISD by habitat and depth strata
+## All size classes
 
 ```{r, fig.width=8, fig.height=6}
 hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Condition=="C"))
@@ -245,6 +266,14 @@ ggplot(data=ldply(hab),
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiom, colour=Habitat))+
+  geom_point(size=3)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
+  facet_wrap(~Depth, scales="free")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw()%+replace% large #%+replace% dark
+
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path(size=1)+
@@ -252,7 +281,11 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   facet_wrap(~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw()%+replace% large #%+replace% dark
+```
 
+## Size classes > 7.812500e-03
+
+```{r, fig.width=8, fig.height=6}
 # Only keep Wt >7.812500e-03
 
 hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Condition=="C" & Wt>7.812500e-03))
@@ -288,9 +321,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   facet_wrap(~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw()%+replace% large #%+replace% dark
-```
 
-```{r, fig.width=8, fig.height=6}
 # Rank individual weight
 SortWt <- lapply(hab, FUN=function(x)cbind(rank=1:length(x$Wt), weight=sort(x$Wt, decreasing=TRUE)))
 SortWt <- ldply(SortWt)
@@ -311,6 +342,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```
 
 # NBSS and ISD by cruise, habitat and depth strata
+## All size classes
 
 ```{r, fig.width=10, fig.height=8}
 hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac, Condition=="C"))
@@ -329,6 +361,14 @@ ggplot(data=ldply(hab),
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiom, colour=Habitat))+
+  geom_point(size=3)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
+  facet_grid(Cruise~Depth, scales="free")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw()%+replace% large #%+replace% dark
+
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
   geom_path(size=1)+
@@ -336,7 +376,11 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   facet_grid(Cruise~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw()%+replace% large #%+replace% dark
+```
 
+## Size classes > 7.812500e-03
+
+```{r, fig.width=10, fig.height=8}
 # Only keep size < 7.812500e-03
 
 hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac, Wt > 7.812500e-03))
@@ -373,9 +417,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   facet_grid(Cruise~Depth, scales="free")+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw()%+replace% large #%+replace% dark
-```
 
-```{r, fig.width=10, fig.height=8}
 # Rank individual weight
 SortWt <- lapply(hab, FUN=function(x)cbind(rank=1:length(x$Wt), weight=sort(x$Wt, decreasing=TRUE)))
 SortWt <- ldply(SortWt)
@@ -396,6 +438,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```
 
 # NBSS and ISD by habitat and dominant taxa
+## All size classes
 
 ```{r, fig.width=12, fig.height=8}
 hab <- splitBy(~Habitat+Taxon, data=subset(mac, Condition=="C"))
@@ -422,6 +465,14 @@ ggplot(data=ldply(hab),
   facet_grid(Cruise~Category, scales="free")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiom, colour=Habitat))+
+  geom_point(size=3)+
+  geom_path(size=1)+
+  scale_colour_manual(values=c("black","gray"))+
+  facet_wrap(~Taxon, scales="free")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw()  %+replace% large  %+replace% rotate #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   geom_point(size=3)+
@@ -456,54 +507,58 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ```
 
 # Mean body size of macrofauna
+## By cruise and habitat
 
 ```{r, fig.width=7, fig.height=5}
 library(knitr)
 dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Cruise+Station, data=subset(mac, Condition=="C"), FUN=c(mean, sd, length))
-
+dat.mean$Wt.se <- dat.mean$Wt.sd/dat.mean$Wt.length^0.5
 ggplot(data=dat.mean, 
        aes(x=Depth.mean, y=Wt.mean, 
-           ymin=Wt.mean-Wt.sd, ymax=Wt.mean+Wt.sd,
+           ymin=Wt.mean-Wt.se, ymax=Wt.mean+Wt.se,
            colour=Habitat, linetype=Habitat))+
-  #geom_point(data=subset(dat.mean, bad2), size=5, colour="red")+
-  #annotate("text", label = "OR1-1151", x = 1500, y = 0.1, size = 8, colour = "red")+
   geom_point(size=5)+
   scale_colour_manual(values=c("black","gray"))+
   geom_errorbar()+
-  stat_smooth(method="lm", formula=y~x, alpha=0.2, colour="gray20")+
+  stat_smooth(method="lm", formula=y~x, alpha=0.2, colour="gray20", se=FALSE)+
   scale_linetype_manual(values=c(1,2))+
   labs(x="Depth (m)", y=expression(Mean~body~size~(mg~indiv^-1)))+
   scale_y_log10()+
   theme_bw() %+replace% large
 
-out <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Depth.mean", "Wt.length", "Wt.mean", "Wt.sd")]
-names(out) <- c("Region", "Habitat", "Cruise", "Station", "Depth", "n", "Mean Size", "SD")
+out <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Depth.mean", "Wt.length", "Wt.mean", "Wt.sd", "Wt.se")]
+names(out) <- c("Region", "Habitat", "Cruise", "Station", "Depth", "n", "Mean Size", "SD", "SE")
 out$Depth <- round(out$Depth, 0)
 out$`Mean Size` <- round(out$`Mean Size`, 2)
 out$SD <- round(out$SD, 3)
+out$SE <- round(out$SE, 3)
 kable(out, align="c")
 ```
 
+## By habitat
+
 ```{r, fig.width=7, fig.height=5}
 dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Station, data=mac, FUN=c(mean, sd, length))
-ggplot(data=subset(dat.mean, Region=="Gaoping"), 
+dat.mean$Wt.se <- dat.mean$Wt.sd/dat.mean$Wt.length^0.5
+ggplot(data=dat.mean, 
        aes(x=Depth.mean, y=Wt.mean, 
-           ymin=Wt.mean-Wt.sd, ymax=Wt.mean+Wt.sd,
+           ymin=Wt.mean-Wt.se, ymax=Wt.mean+Wt.se,
            colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
   scale_colour_manual(values=c("black","gray"))+
   geom_errorbar()+
-  stat_smooth(method="lm", formula=y~x, alpha=0.2, colour="gray20")+
+  stat_smooth(method="lm", formula=y~x, alpha=0.2, colour="gray20", se=FALSE)+
   scale_linetype_manual(values=c(1,2))+
   labs(x="Depth (m)", y=expression(Mean~body~size~(mg~indiv^-1)))+
   scale_y_log10()+
   theme_bw() %+replace% large
 
-out <- dat.mean[, c("Region", "Habitat", "Station", "Depth.mean", "Wt.length", "Wt.mean", "Wt.sd")]
-names(out) <- c("Region", "Habitat", "Station", "Depth", "n", "Mean Size", "SD")
+out <- dat.mean[, c("Region", "Habitat", "Station", "Depth.mean", "Wt.length", "Wt.mean", "Wt.sd", "Wt.se")]
+names(out) <- c("Region", "Habitat", "Station", "Depth", "n", "Mean Size", "SD", "SE")
 out$Depth <- round(out$Depth, 0)
 out$`Mean Size` <- round(out$`Mean Size`, 2)
 out$SD <- round(out$SD, 3)
+out$SE <- round(out$SE, 3)
 kable(out, align="c")
 ```
 

@@ -29,115 +29,40 @@ large <- theme(legend.title = element_text(size=20),
         axis.text = element_text(size=20))
 ```
 
-# Observed meiofauna size distribution
-100 nematodes were randomly selected to measured body size. 
-
-```{r}
-# Size data
-col_types <- c("text", "text", "text", "numeric", "numeric", "numeric", "text","text", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "text")
-
-mei <- NULL
-for(i in 1:3){
-  d <- as.data.frame(read_excel("../GPSC_data/GPSC_meio_size/GPSC_meio_size_2020.01.07.xlsx", sheet=i, col_types=col_types))
-  mei <- rbind(mei, d)
-}
-
-# Get water depth
-depth   <- read_excel("../GPSC_data/GPSC_meio_sorting/GPSC_meio_sorting_2016.08.18.xlsx", sheet=1)
-depth <- depth[match(paste(mei$Cruise, mei$Station), paste(depth$Cruise, depth$Station)),]
-mei$Wt <- mei$Size*(1.13)
-
-mei$Longitude <- depth$Longitude
-mei$Latitude <- depth$Latitude
-mei$Depth <- depth$Depth
-
-depth.bk <- c(200, 400, 600, 800, 1100)
-depth.lab <- c("200-400", "400-600", "600-800", "800-1100")
-mei$Depth.zone <- cut(depth$Depth, breaks=depth.bk, labels=depth.lab)
-
-# Split the size data by nematods, harpacticoids and others
-Category <- as.character(mei$Taxon)
-Category[Category!="Nematoda"&Category!="Harpacticoida"] <- "Others"
-mei <- splitBy(~Category+Cruise+Station, cbind(Category, mei))
-mei <- lapply(mei, FUN=function(x){
-  x$Habitat <- factor(x$Habitat, levels=c("Canyon", "Slope"))
-  return(x)
-  })
-
-ggplot(data=subset(ldply(mei), Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
-       aes(x=log10(Size*1.13), fill=Habitat, colour=Habitat))+
-  geom_density(alpha=0.5)+
-  facet_grid(Cruise~Category, scale="free")+
-  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw()
-```
-
-# Simulated meiofauna size distribtution
-Because not all specimens were measured for their sizes, the size distribution of nematodes (from 100 random individuals), harpacticoids and other taxa (as many as possible) were scaled to the total abundance in the samples by resampling the observed size measurement (with replacement).
-```{r, fig.width=10, fig.height=6}
-# Sorting data
-mei_a   <- read_excel("../GPSC_data/GPSC_meio_sorting/GPSC_meio_sorting_2016.08.18.xlsx", sheet=2)
-Category <- as.character(mei_a$Taxon)
-Category[Category=="Copepoda"] <- "Harpacticoida"
-Category[Category!="Nematoda"&Category!="Harpacticoida"] <- "Others"
-mei_a <- cbind(Category, mei_a)
-mei_a <- subset(mei_a, Subcore!="water")
-mei_a <- summaryBy(Abundance~Category+Cruise+Station+Taxon, data=mei_a, FUN=c(mean, sd, length), keep.names=T)
-names(mei_a)[5:7] <- c("Abundance", "sd", "n")
-
-# Match the sample names (tube) in size data to the sample names (tube) in sorting data 
-# Extract the total abudance from the sorting data 
-sn <- with(mei_a, paste(Category, Cruise, Station, sep="|"))
-abund <- mei_a[match(names(mei), sn),]$Abundance
-
-# Resample the size data (with replacement) by the total abundance in each sample
-sample_fun <-
-  function(i){
-    keep <- sample(1:dim(mei[[i]])[1], si=abund[i], replace=TRUE)
-    mei[[i]][keep,]
-  }
-
-library(doSNOW)
-library(foreach)
-
-# Simulated size data
-cl<-makeCluster(4) # change the 4 to your number of CPU cores
-registerDoSNOW(cl) # register the SNOW parallel backend with the foreach package
-simu <- foreach(i=1:length(mei)) %dopar% sample_fun(i)
-stopCluster(cl) # stop a SNOW cluster
-
-ggplot(data=subset(ldply(simu), Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
-  geom_density(alpha=0.5)+
-  facet_grid(Cruise~Category, scale="free")+
-  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw()
-
-mei_s <- ldply(simu)
-```
-
 # Totoal density
-## Per cruise
-```{r}
-cord   <- read_excel("../GPSC_data/GPSC_meio_sorting/GPSC_meio_sorting_2016.08.18.xlsx", sheet=1)
-out <- summaryBy(Abundance~Cruise+Station, data=mei_a, FUN=c(mean, sd), keep.names = TRUE)
-out$Density <- out$Abundance.mean/(pi*(2.5/2)^2/10000)
-out$sd <- out$Abundance.sd/(pi*(2.5/2)^2/10000)
-keep <- match(paste(out$Cruise, out$Station), paste(cord$Cruise, cord$Station))
-out <- cbind(cord[keep, 3:9], out[, 5:6])
+## By cruise
+```{r, fig.width=7, fig.height=5}
+# Sorting data
+mei_a   <- read_excel("../excel/GPSC_meio_sorting_2016.08.18.xlsx", sheet=2)
+mei_a <- summaryBy(Abundance~Cruise+Station+Station+Deployment+Tube+Subcore, data=as.data.frame(mei_a), FUN=sum, keep.names=T)
+mei_a$Density <- mei_a$Abundance/(pi*(2.5/2)^2/10000)
+mei_a <- summaryBy(Density~Cruise+Station, data=mei_a, FUN=c(mean, sd, length), keep.names = TRUE)
+mei_a$Density.se <- mei_a$Density.sd/mei_a$Density.length^0.5
+cord   <- read_excel("../excel/GPSC_meio_sorting_2016.08.18.xlsx", sheet=1)
+keep <- match(paste(mei_a$Cruise, mei_a$Station), paste(cord$Cruise, cord$Station))
+out<- cbind(cord[keep, 3:9], mei_a[, 3:6])
+names(out)[8:11] <- c("Density", "sd", "n", "se")
 
 ggplot(data= out, 
-       aes(x=Depth, y=Density, ymin=(Density-sd), ymax=(Density+sd), colour=Habitat))+
+       aes(x=Depth, y=(Density), ymin=(Density-se), ymax=(Density+se), colour=Habitat, fill=Habitat))+
   geom_point(size=5)+
   scale_shape_manual(values=c(19,1))+
   geom_errorbar()+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
+  scale_colour_manual(values=c("black","gray"))+
+  scale_fill_manual(values=c("black","gray"))+
   scale_linetype_manual(values=c(1,2))+
   labs(x="Depth (m)", y=expression(Density~(Indiv~m^-2)))+
   scale_y_log10()+
   theme_bw() %+replace% large
 
-kable(out)
+out$Longitude <- round(out$Longitude, 4)
+out$Latitude <- round(out$Latitude, 4)
+out$Depth <- round(out$Depth, 0)
+out$Density <- round(out$Density, 0)
+out$sd <- round(out$sd, 1)
+out$se <- round(out$se, 1)
+kable(out, align="c")
 ```
 
 ## Per station

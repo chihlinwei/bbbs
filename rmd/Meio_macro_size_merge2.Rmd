@@ -1,5 +1,5 @@
 ---
-title: "Meio and Macrofauna Size"
+title: "Merged meiofauna and Macrofauna Size Spectrum"
 author: "Chih-Lin Wei"
 date: "4/9/2020"
 output: 
@@ -12,6 +12,11 @@ output:
     highlight: tango  # specifies the syntax highlighting style
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```
+
+Meiofauna and macrofauna size from OR1 1114 and 1126 were merged but analyzed seperatedly.
 
 ```{r}
 library(bbbs)
@@ -48,7 +53,7 @@ l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 
 # Construction of meiofauna and macrofauna size specturm
 
-Normalized biomass size spectrum (NBSS) and individual size distribution (ISD) were computed using custom R functions from Edwards et al. (2017, Methods in Ecology and Evolution 1:57-67). A probability density function based on a bounded power law (PLB) distribution was fitted to the ISD of meiofauna+macrofauna using maximum likelihood estimation (MLE) to estimate the exponent b. The exponent b (determined by MLE) is equivalent to the regression slope of the NBSS; however, comparison studies by Edwards et al. (2017) concluded that MLE method is the most accurate way to estimate the slope.
+Normalized biomass size spectrum (NBSS) and individual size distribution (ISD) were computed using custom R package sizeSpectra (Edwards et al., 2017, Methods in Ecology and Evolution 1:57-67). A probability density function based on a bounded power law (PLB) distribution was fitted to the ISD of meiofauna+macrofauna using maximum likelihood estimation (MLE) to estimate the exponent b. The exponent b (determined by MLE) is equivalent to the regression slope of the NBSS; however, comparison studies by Edwards et al. (2017) concluded that MLE method is the most accurate way to estimate the slope.
 For normalized biomass size spectrum (NBSS), individual size of meiofauna+macrofauna were binned by log10 transformation of their biomass. The total biomass of each bin was normalized by the width of the bin. The log10 normalized biomass was plotted against the log10 midpoint of the size bin; however, the regression slope (and line) was not estimated from the NBSS. Instead, the slope (and line) was estimated by a customized probability density function using maximum likelihood.
 The same fitted line (with 95% confidence interval) was plotted on the individual size distribution, which ranks the body size in decreasing order to visualize the fit between the model and size data.
 
@@ -56,7 +61,7 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 
 ## All size classes
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=8.1, fig.height=5}
 # Use functions from Edwards etal. (2017) Methods in Ecology and Evolution 1:57-67
 # https://github.com/andrew-edwards/fitting-size-spectra
 #source("PLBfunctions.r")
@@ -64,8 +69,8 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 bks <- l2b(si$Wt)
 
 # Macrofauna
-hab <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna"))
-wt <- lapply(hab, FUN=function(x)x$Wt)
+hab_mac <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna"))
+wt <- lapply(hab_mac, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
@@ -73,29 +78,50 @@ names(info) <- "Habitat"
 nbss_mac <- cbind(info, nbss[, -1])
 
 # Meiofauna
-hab <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna"))
-wt <- lapply(hab, FUN=function(x)x$Wt)
+hab_mei <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna"))
+wt <- lapply(hab_mei, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
 info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- "Habitat"
 nbss_mei <- cbind(info, nbss[, -1])
 
-nbss <- rbind(cbind(Class="Macrofauna", nbss_mac),
-              cbind(Class="Meiofauna", nbss_mei))
+hab <- rbind(cbind(Class="Macro", ldply(hab_mac)),
+              cbind(Class="Meio", ldply(hab_mei)))
 
+nbss <- rbind(cbind(Class="Macro", nbss_mac),
+              cbind(Class="Meio", nbss_mei))
+
+
+ggplot(data=hab[,1:32], 
+       aes(x=log10(Wt), fill=paste(Class, Habitat, sep=","), size=paste(Class, Habitat, sep=",")))+
+  geom_density(alpha=0.5)+
+  scale_size_manual(values=c(1,2,1,2))+
+  scale_fill_manual(values=c("#e41a1c", "#e41a1c", "#4daf4a", "#4daf4a"))+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)), fill="Size class, habitat", size="Size class, habitat")+
+  #facet_wrap(~Habitat)+
+  theme_bw() %+replace% large #%+replace% dark
+```
+
+```{r, fig.width=7, fig.height=5}
+ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habitat))+
+  geom_point(size=5)+
+  geom_path(size=1)+
+  scale_shape_manual(values=c(19, 1))+
+  scale_colour_manual(values=c("black", "gray"))+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw() %+replace% large #%+replace% dark
 
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
-  geom_point(size=3)+
-  geom_path()+
+  geom_point(size=5)+
+  geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
-  #scale_colour_manual(values=c("black", "gray"))+
+  scale_colour_manual(values=c("black", "gray"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Removing the small size classes from macrofauna and meiofauna
+## Macrofauna size classes > 7.812500e-03 and meiofauna size classes > 1.220703e-04
 
 ```{r}
 # Macrofauna > 7.812500e-03
@@ -146,17 +172,17 @@ info <- ldply(strsplit(SortWt$.id, split="[|]"))
 names(info) <- "Habitat"
 SortWt_mei <- cbind(info, SortWt[, -1])
 
-nbss <- rbind(cbind(Class="Macrofauna", nbss_mac),
-              cbind(Class="Meiofauna", nbss_mei))
-plb <- rbind(cbind(Class="Macrofauna", plb_mac),
-              cbind(Class="Meiofauna", plb_mei))
-SortWt <- rbind(cbind(Class="Macrofauna", SortWt_mac),
-              cbind(Class="Meiofauna", SortWt_mei))
+nbss <- rbind(cbind(Class="Macro", nbss_mac),
+              cbind(Class="Meio", nbss_mei))
+plb <- rbind(cbind(Class="Macro", plb_mac),
+              cbind(Class="Meio", plb_mei))
+SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
+              cbind(Class="Meio", SortWt_mei))
 ```
 
-```{r}
+```{r, fig.width=8, fig.height=5}
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
-  geom_point(size=3)+
+  geom_point(size=5)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
@@ -166,7 +192,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=H
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-```{r}
+```{r, fig.width=8, fig.height=5}
 ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   geom_point(size=2)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+

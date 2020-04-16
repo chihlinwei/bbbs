@@ -75,11 +75,12 @@ simu <- foreach(i=1:length(mac_s)) %dopar% sample_fun(i)
 stopCluster(cl) # stop a SNOW cluster
 
 ggplot(data=ldply(simu), 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
+       aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
   facet_wrap(~Cruise, scales="free")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 
 mac_s <- ldply(simu)
 ```
@@ -87,11 +88,12 @@ mac_s <- ldply(simu)
 ```{r, fig.width=10, fig.height=4}
 # Only show 1096, 1114, 1126 macrofauna size simulation because only these cruise have ok polychaete sizes
 ggplot(data=subset(mac_s, Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
+       aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
   facet_wrap(~Cruise, scales="free_y")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw() %+replace% large %+replace% dark
+  theme_bw() %+replace% large #%+replace% dark
 ```
 Only cruise 1096, 1114, and 1126 can be merged
 
@@ -133,11 +135,12 @@ simu <- foreach(i=1:length(mei)) %dopar% sample_fun(i)
 stopCluster(cl) # stop a SNOW cluster
 
 ggplot(data=subset(ldply(simu), Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
+       aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
   facet_grid(Cruise~Category, scale="free")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw()%+replace% dark
+  theme_bw() #%+replace% dark
 
 mei_s <- ldply(simu)
 ```
@@ -156,11 +159,12 @@ si$Habitat <- factor(si$Habitat, levels=c("Canyon", "Slope"))
 si <- si[grep("1114|1126", si$Cruise),]
 
 ggplot(data=subset(si, Category!="Others"), 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
+       aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
   facet_wrap(~Category, scales="free")+
+  scale_fill_manual(values=c("black", "gray"))+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
-  theme_bw()%+replace% dark %+replace% rotate
+  theme_bw() %+replace% rotate #%+replace% dark 
 ```
 
 ```{r}
