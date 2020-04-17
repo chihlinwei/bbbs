@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
 
@@ -23,9 +23,10 @@ library(ggplot2)
 library(plyr)
 library(doBy)
 library(readxl)
-library(swtmap)
-library(maptools)
 library(knitr)
+library(swtmap)
+library(TWBathyMap)
+library(maptools)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -53,7 +54,7 @@ jet.colors <-colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
 ## per cruise
 
 
-```{r}
+```{r, fig.height=5, fig.width=7}
 # Convert the numbers of polychaete specimen (with head) to abundance
 pols <- subset(mac, Taxon=="Polychaeta" & (Condition=="FH" | Condition=="C" | Condition=="FHT"))
 pola <- summaryBy(Size~Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Abundance", keep.names = T)
@@ -67,124 +68,92 @@ abun <- summaryBy(Abundance~Cruise+Station+Deployment+Tube, data=as.data.frame(s
 depth <- read_excel("../excel/GPSC_macro_sorting_2019.12.16.xlsx", sheet=1)
 abun <- cbind(depth[match(paste(abun$Cruise, abun$Station), paste(depth$Cruise, depth$Station)),], abun)
 
-dat <- subset(abun, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1126")
+
+dat <- subset(abun, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 
 dat$Density <- dat$Abundance/dat$Area
-dat.mean <- summaryBy(Density+Longitude+Latitude+Depth+Date~Region+Habitat+Cruise+Station, data=dat, FUN=c(mean, sd, length))
+dat.mean <- summaryBy(Density+Longitude+Latitude+Depth+Date~Habitat+Cruise+Station, data=dat, FUN=c(mean, sd, length))
 dat.mean$Date.mean <- strftime(as.POSIXct(dat.mean$Date.mean, origin = "1970-01-01", tz = "Asia/Taipei"), format="%Y-%m-%d")
 dat.mean$Density.se <- dat.mean$Density.sd/dat.mean$Density.length^0.5
 
-dat.mean <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Date.mean", "Density.length", "Density.mean", "Density.sd", "Density.se")]
-names(dat.mean) <- c("Region", "Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "Date", "n", "Density", "sd", "se")
+out <- dat.mean[, c("Habitat", "Cruise", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Date.mean", "Density.length", "Density.mean", "Density.sd", "Density.se")]
+names(out) <- c("Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "Date", "n", "Density", "sd", "se")
 
-ggplot(data=dat.mean, 
-       aes(x=Depth, y=Density, 
-           ymin=Density-se, ymax=Density+se,
-           colour=Habitat, fill=Habitat,
+out$Longitude <- round(out$Longitude, 4)
+out$Latitude <- round(out$Latitude, 4)
+out$Depth <- round(out$Depth, 0)
+out$Density <- round(out$Density, 0)
+out$sd <- round(out$sd, 1)
+out$se <- round(out$se, 1)
+kable(out, align="c", caption="OR1_1102 GS4 and OR1_1126 GC2 had very low abundance and only single replication. They are removed as outliers before plotting")
+
+# Outliers with very low abundance and only 1 replicate
+bad <- with(out, (Cruise=="OR1_1102" & Station == "GS4")|(Cruise=="OR1_1126" & Station == "GC2"))
+out <- subset(out, !bad)
+
+ggplot(data=out, 
+       aes(x=Depth, y=log10(Density), 
+           ymin=log10(Density-se), ymax=log10(Density+se),
+           colour=Habitat, linetype=Habitat,
            shape=Habitat))+
   geom_point(size=5)+ 
-  stat_smooth(method="lm", formula=y~x, se=FALSE)+
-  geom_errorbar()+
-  scale_colour_manual(values=c("black","gray"))+
-  scale_fill_manual(values=c("black","gray"))+
+  stat_smooth(method="lm", formula=y~x, alpha=0.3)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Density~(Ind~m^-2)))+
-  scale_y_log10()+
+  labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
+  #scale_y_log10()+
   theme_bw() %+replace% large #%+replace% dark
-
-dat.mean$Longitude <- round(dat.mean$Longitude, 4)
-dat.mean$Latitude <- round(dat.mean$Latitude, 4)
-dat.mean$Depth <- round(dat.mean$Depth, 0)
-dat.mean$Density <- round(dat.mean$Density, 0)
-dat.mean$sd <- round(dat.mean$sd, 1)
-dat.mean$se <- round(dat.mean$se, 1)
-kable(dat.mean)
 ```
 
 ## Per station
 
-```{r}
-dat.mean.mean <- summaryBy(Density+Longitude+Latitude+Depth~Region+Habitat+Station, data=dat.mean, FUN=c(mean, sd, length))
-dat.mean.mean$Density.se <- dat.mean.mean$Density.sd/dat.mean.mean$Density.length^0.5
+```{r, fig.height=5, fig.width=7}
+dat.mean <- summaryBy(Density+Longitude+Latitude+Depth~Habitat+Station, data=out, FUN=c(mean, sd, length))
+dat.mean$Density.se <- dat.mean$Density.sd/dat.mean$Density.length^0.5
 
-dat.mean.mean <- dat.mean.mean[,c("Region", "Habitat", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Density.length", "Density.mean", "Density.sd", "Density.se")]
-names(dat.mean.mean) <- c("Region", "Habitat", "Station", "Longitude", "Latitude", "Depth","n", "Density", "sd", "se")
+out <- dat.mean[,c("Habitat", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Density.length", "Density.mean", "Density.sd", "Density.se")]
+names(out) <- c("Habitat", "Station", "Longitude", "Latitude", "Depth","n", "Density", "sd", "se")
 
-ggplot(data=dat.mean.mean, 
-       aes(x=Depth, y=Density, 
-           ymin=Density-se, ymax=Density+se,
-           colour=Habitat, fill=Habitat, shape=Habitat))+
+out$Longitude <- round(out$Longitude, 4)
+out$Latitude <- round(out$Latitude, 4)
+out$Depth <- round(out$Depth, 0)
+out$Density <- round(out$Density, 0)
+out$sd <- round(out$sd, 1)
+out$sd <- round(out$se, 1)
+kable(out, align="c")
+
+ggplot(data=out, 
+       aes(x=Depth, y=log10(Density), 
+           ymin=log10(Density-se), ymax=log10(Density+se),
+           colour=Habitat, linetype=Habitat, shape=Habitat))+
   geom_point(size=5)+ 
-  stat_smooth(method="lm", formula=y~x, se=FALSE)+
-  geom_errorbar()+
-  scale_colour_manual(values=c("black","gray"))+
-  scale_fill_manual(values=c("black","gray"))+
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Density~(Ind~m^-2)))+
-  #scale_y_log10()+
+  labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
   theme_bw() %+replace% large #%+replace% dark
-
-dat.mean.mean$Longitude <- round(dat.mean.mean$Longitude, 4)
-dat.mean.mean$Latitude <- round(dat.mean.mean$Latitude, 4)
-dat.mean.mean$Depth <- round(dat.mean.mean$Depth, 0)
-dat.mean.mean$Density <- round(dat.mean.mean$Density, 0)
-dat.mean.mean$sd <- round(dat.mean.mean$sd, 1)
-dat.mean.mean$sd <- round(dat.mean.mean$se, 1)
-kable(dat.mean.mean)
-```
-
-```{r}
-loc <- dat.mean.mean
-coordinates(loc) <- c("Longitude", "Latitude")
-r <- crop(bathy, extent(120.1, 120.5, 22.1, 22.5))
-isobath<- rasterToContour(r, levels=c(seq(-1800, -200, by=200), 0))
-
-extra <- function(...){
-         panel.levelplot.raster(...)
-         sp.lines(isobath, col="gray30")
-         sp.points(loc, cex=2, pch=19, col=level.colors(loc$Density, at = 10^pretty(log10(loc$Density), 100), col.regions=jet.colors))
-}
-tbspplot(r, panel=extra)
 ```
 
 # Mean biomass 
 ## Per cruise
 
-```{r}
+```{r, fig.height=5, fig.width=7}
 dat <- subset(mac, Size<100)
 
-dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1126")
+dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 
-dat.sum <- summaryBy(Size+Area+Longitude+Latitude+Depth~Region+Habitat+Cruise+Station+Deployment+Tube, data=dat, FUN=c(sum, mean))
+dat.sum <- summaryBy(Size+Area+Longitude+Latitude+Depth~Habitat+Cruise+Station+Deployment+Tube, data=dat, FUN=c(sum, mean))
 dat.sum$Biomass <- dat.sum$Size.sum/dat.sum$Area.mean
 
-dat.mean <- summaryBy(Biomass+Longitude.mean+Latitude.mean+Depth.mean~Region+Habitat+Cruise+Station, data=dat.sum, FUN=c(mean, sd, length))
+dat.mean <- summaryBy(Biomass+Longitude.mean+Latitude.mean+Depth.mean~Habitat+Cruise+Station, data=dat.sum, FUN=c(mean, sd, length))
 dat.mean$Biomass.se <- dat.mean$Biomass.sd/dat.mean$Biomass.length^0.5
 
-
-# Bad core at OR1 1102 GS4 (sediment only 19 cm)
-bad <- with(dat.mean, Cruise=="OR1_1102"&Station=="GS4")
-dat.mean <- subset(dat.mean, !bad)
-
-out <- dat.mean[, c("Region", "Habitat", "Cruise", "Station", "Longitude.mean.mean", "Latitude.mean.mean", "Depth.mean.mean", "Biomass.length", "Biomass.mean", "Biomass.sd", "Biomass.se")]
-names(out) <- c("Region", "Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd", "se")
-
-ggplot(data=out, 
-       aes(x=Depth, y=Biomass, 
-           ymin=(Biomass-se), ymax=(Biomass+se),
-           shape=Habitat, colour=Habitat, fill=Habitat))+
-  geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x, se=FALSE)+
-  geom_errorbar()+
-  scale_colour_manual(values=c("black","gray"))+
-  scale_fill_manual(values=c("black","gray"))+
-  scale_linetype_manual(values=c(1,2))+
-  scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Biomass~(mg~m^-2)))+
-  scale_y_log10()+
-  theme_bw() %+replace% large #%+replace% dark
+out <- dat.mean[, c("Habitat", "Cruise", "Station", "Longitude.mean.mean", "Latitude.mean.mean", "Depth.mean.mean", "Biomass.length", "Biomass.mean", "Biomass.sd", "Biomass.se")]
+names(out) <- c("Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd", "se")
 
 out$Longitude <- round(out$Longitude, 4)
 out$Latitude <- round(out$Latitude, 4)
@@ -192,31 +161,32 @@ out$Depth <- round(out$Depth, 0)
 out$Biomass <- round(out$Biomass, 0)
 out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
-kable(out, align="c")
+kable(out, align="c", caption="OR1_1102 GS4 and OR1_1126 GC2 had very low abundance and only single replication. They are removed as outliers before plotting")
+
+out <- subset(out, !bad)
+ggplot(data=out, 
+       aes(x=Depth, y=log10(Biomass), 
+           ymin=log10(Biomass-se), ymax=log10(Biomass+se),
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
+  #scale_fill_manual(values=c("black","gray"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
+  #scale_y_log10()+
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ## Per station
 
-```{r}
-dat.mean <- summaryBy(Biomass+Longitude+Latitude+Depth~Region+Habitat+Station, data=out, FUN=c(mean, sd, length))
+```{r, fig.height=5, fig.width=7}
+dat.mean <- summaryBy(Biomass+Longitude+Latitude+Depth~Habitat+Station, data=out, FUN=c(mean, sd, length))
 dat.mean$Biomass.se <- dat.mean$Biomass.sd/dat.mean$Biomass.length^0.5
-out <- dat.mean[, c("Region", "Habitat", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Biomass.length", "Biomass.mean", "Biomass.sd", "Biomass.se")]
-names(out) <- c("Region", "Habitat", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd", "se")
-
-ggplot(data=out, 
-       aes(x=Depth, y=Biomass, 
-           ymin=(Biomass-se), ymax=(Biomass+se),
-           shape=Habitat, colour=Habitat, fill=Habitat))+
-  geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x, se=FALSE)+
-  scale_colour_manual(values=c("black","gray"))+
-  scale_fill_manual(values=c("black","gray"))+
-  scale_shape_manual(values=c(19,1))+
-  geom_errorbar()+
-  scale_linetype_manual(values=c(1,2))+
-  labs(x="Depth (m)", y=expression(Biomass~(mg~m^-2)))+
-  scale_y_log10()+
-  theme_bw() %+replace% large #%+replace% dark
+out <- dat.mean[, c("Habitat", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Biomass.length", "Biomass.mean", "Biomass.sd", "Biomass.se")]
+names(out) <- c("Habitat", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd", "se")
 
 out$Longitude <- round(out$Longitude, 4)
 out$Latitude <- round(out$Latitude, 4)
@@ -225,16 +195,68 @@ out$Biomass <- round(out$Biomass, 0)
 out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
 kable(out, align="c")
+
+ggplot(data=out, 
+       aes(x=Depth, y=log10(Biomass), 
+           ymin=log10(Biomass-se), ymax=log10(Biomass+se),
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  scale_colour_manual(values=c("black","gray30"))+
+  scale_shape_manual(values=c(19,1))+
+  geom_errorbar(linetype=1)+
+  scale_linetype_manual(values=c(1,2))+
+  labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
-```{r}
+# Sampling map
+
+```{r, fig.height=8, fig.width=8}
+tbspplot <- 
+  function(x, ...){
+  slope <- terrain(x, opt="slope")
+  aspect <- terrain(x, opt="aspect")
+  hill <- hillShade(slope, aspect, 80, 270)
+  p2 <- spplot(hill, col.regions=grey(0:100/100), cut=100, colorkey=FALSE)
+  pal <- tb.colors(x)
+  p1 <- spplot(x, col.regions=alpha(pal$col, 0.6), at=pal$breaks,
+               colorkey=list(space="top", labels=list(cex=1)),
+               scales=list(draw = TRUE, cex=1)
+               ,...)
+p1+as.layer(p2, under=T)
+}
+
+
 loc <- out
 coordinates(loc) <- c("Longitude", "Latitude")
+r <- crop(swtmap::bathy, extent(120.15, 120.45, 22.1, 22.5))
+#r <- projectRaster(r, res=0.001, crs="+proj=longlat")
+isobath<- rasterToContour(r, levels=c(seq(-1800, -200, by=100), 0))
 
 extra <- function(...){
          panel.levelplot.raster(...)
          sp.lines(isobath, col="gray30")
-         sp.points(loc, cex=2, pch=19, col=level.colors(loc$Biomass, at = 10^pretty(log10(loc$Biomass), 100), col.regions=jet.colors))
+         sp.points(loc, cex=2, pch=19, col=rep(c("#e41a1c", "#4daf4a"), each=4))
+         sp.pointLabel(loc, labels=loc$Station, cex=1.5, allowSmallOverlap=FALSE)
+         SpatialPolygonsRescale(layout.scale.bar(), offset=c(120.28, 22.46), scale = 10/(111.321*cos(22.46*pi/180)), fill = c("white","black"), col = "black")
+         sp.text(loc = c(120.28, 22.475), "0")
+         sp.text(loc = c(120.38, 22.475), "10 km")
+}
+tbspplot(r, panel=extra)
+```
+
+```{r, fig.height=8, fig.width=8}
+e <- extent(119.1, 122.2, 21.6, 25.5)
+r <- crop(TWBathyMap::bathy, e)
+#r <- projectRaster(r, res=0.001, crs="+proj=longlat")
+lon <- c(120.15, 120.15, 120.45, 120.45, 120.15)
+lat <- c(22.1, 22.5, 22.5, 22.1, 22.1)
+b <- SpatialPolygons(list(Polygons(list(Polygon(cbind(lon, lat))), 1)))
+extra <- function(...){
+         panel.levelplot.raster(...)
+         sp.polygons(b, col="#e41a1c", lty=2)
+         sp.points(loc, cex=0.5, pch=19, col=rep(c("#e41a1c", "#4daf4a"), each=4))
 }
 tbspplot(r, panel=extra)
 ```
