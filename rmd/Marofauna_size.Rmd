@@ -64,7 +64,7 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 # https://github.com/andrew-edwards/fitting-size-spectra
 #source("PLBfunctions.r")
 
-hab <- splitBy(~Habitat, data=subset(mac, Condition=="C"))
+hab <- splitBy(~Habitat, data=subset(mac_s, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 bks <- l2b(unlist(wt))
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
@@ -100,7 +100,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=7, fig.height=5}
 # Only keep Wt > 7.812500e-03
 
-hab <- splitBy(~Habitat, data=subset(mac, Condition=="C" &Wt>7.812500e-03))
+hab <- splitBy(~Habitat, data=subset(mac_s, Condition=="C" &Wt>7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -155,7 +155,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 
 ```{r, fig.width=10, fig.height=8}
 
-hab <- splitBy(~Cruise+Habitat, data=subset(mac, Condition=="C"))
+hab <- splitBy(~Cruise+Habitat, data=subset(mac_s, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -193,7 +193,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=10, fig.height=8}
 # Only keep Wt > 7.812500e-03
 
-hab <- splitBy(~Cruise+Habitat, data=subset(mac, Condition=="C" & Wt>7.812500e-03))
+hab <- splitBy(~Cruise+Habitat, data=subset(mac_s, Condition=="C" & Wt>7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -250,7 +250,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=8, fig.height=6}
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Condition=="C"))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mac_s, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -288,7 +288,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=8, fig.height=6}
 # Only keep Wt >7.812500e-03
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mac, Condition=="C" & Wt>7.812500e-03))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mac_s, Condition=="C" & Wt>7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -345,7 +345,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=10, fig.height=8}
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac, Condition=="C"))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac_s, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -383,7 +383,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=10, fig.height=8}
 # Only keep size < 7.812500e-03
 
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac, Wt > 7.812500e-03))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac_s, Wt > 7.812500e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -441,7 +441,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=12, fig.height=8}
-hab <- splitBy(~Habitat+Taxon, data=subset(mac, Condition=="C"))
+hab <- splitBy(~Habitat+Taxon, data=subset(mac_s, Condition=="C"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -511,7 +511,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 
 ```{r, fig.width=7, fig.height=5}
 library(knitr)
-dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Cruise+Station, data=subset(mac, Condition=="C"), FUN=c(mean, sd, length))
+dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Cruise+Station, data=subset(mac_s, Condition=="C"), FUN=c(mean, sd, length))
 dat.mean$Wt.se <- dat.mean$Wt.sd/dat.mean$Wt.length^0.5
 ggplot(data=dat.mean, 
        aes(x=Depth.mean, y=Wt.mean, 
@@ -538,7 +538,7 @@ kable(out, align="c")
 ## By habitat
 
 ```{r, fig.width=7, fig.height=5}
-dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Station, data=mac, FUN=c(mean, sd, length))
+dat.mean <- summaryBy(Wt+Depth~Region+Habitat+Station, data=mac_s, FUN=c(mean, sd, length))
 dat.mean$Wt.se <- dat.mean$Wt.sd/dat.mean$Wt.length^0.5
 ggplot(data=dat.mean, 
        aes(x=Depth.mean, y=Wt.mean, 
