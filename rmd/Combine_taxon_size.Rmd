@@ -42,6 +42,8 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Observed macrofauna body size
 
+## All macrofauna
+
 ```{r, fig.width=10, fig.height=6}
 col_types <- c("text", "text", "text", "numeric", "numeric", "text", "text", "text", "text", "text", "text", 
               "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text")
@@ -54,7 +56,7 @@ for(i in 1:15){
 mac <- as.data.frame(mac)
 
 depth <- read_excel("../excel/GPSC_macro_sorting_2019.12.16.xlsx", sheet=1)
-mac <- cbind(depth[match(paste(mac$Cruise, mac$Station), paste(depth$Cruise, depth$Station)),], mac)
+mac <- cbind(depth[match(paste(mac$Cruise, mac$Station), paste(depth$Cruise, depth$Station)), c("Region", "Date", "Longitude", "Latitude", "Depth", "Corer", "Area", "Sieve")], mac)
 mac$Wt <- mac$Size*(1.13)
 
 depth.bk <- c(200, 400, 600, 800, 1100, 2000, 3700)
@@ -70,29 +72,87 @@ mac <- cbind(Category, mac)
 mac <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 
 # Size (complete specimen)
-mac_s <- subset(mac, Condition=="C")
+mac_c <- subset(mac, Condition=="C")
 
 # Observed macrofauna sizes
-ggplot(data=mac_s, 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
+ggplot(data=mac_c, 
+       aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
   facet_wrap(~Cruise, scales="free_y")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
+## Polychaete only
+
 ```{r, fig.width=10, fig.height=6}
 # Observed polychaete sizes
-ggplot(data=subset(mac_s, Category=="Polychaeta"), 
-       aes(x=log10(Wt), fill=Habitat, colour=Habitat))+
+ggplot(data=subset(mac_c, Category=="Polychaeta"), 
+       aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
   facet_wrap(~Cruise, scales="free")+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 No complete polychaete specimens during cruise 1102 in canyon. 
 
+# Simulated macrofauna body size
+There are two reasons that we need to simulate the macrofauna size distribution. Firstly, we sampled, on average, three core tubes per cruise/station; however, it was not always the case. Therefore, we need to re-sample the individual size data to the average number of individuals in 3 core tubes.  Secondly, polychaetes are easy to break off. We re-sampled the size data of complete polychaetes to match to the numbers of individual polychaete with a head (prostomium).
+```{r, fig.width=10, fig.height=6}
+# Which taxa has fragment specimen?
+unique(subset(mac, Condition!="C")$Taxon)
+
+# Size (complete macrofauna specimen)
+mac_c <- subset(mac, Condition=="C")
+mac_c <- splitBy(~Category+Cruise+Station+Deployment+Tube, mac_c)
+
+# Abundance (specimen with head)
+mac_a <- subset(mac, !(Condition=="F" | is.na(Condition)))
+mac_a <- summaryBy(Taxon~Category+Cruise+Station+Deployment+Tube, data=mac_a, FUN=length, var.names="Abundance", keep.names=TRUE)
+
+# Average by Cruise/Station and then scale the abundance to 3 multicore tubes
+#mac_a <- summaryBy(Abundance~Category+Cruise+Station, data=mac_a, FUN=mean, var.names="Abundance", keep.names=TRUE)
+#mac_a$Abundance <- mac_a$Abundance*3
+
+# Total abundce in each sample
+sn <- with(mac_a, paste(Category, Cruise, Station, Deployment, Tube, sep="|"))
+abund <- mac_a[match(names(mac_c), sn),]$Abundance
+
+# Resample the size data (with replacement) by the total abundance in each sample
+sample_fun <-
+  function(i){
+    keep <- sample(1:dim(mac_c[[i]])[1], si=abund[i], replace=TRUE)
+    mac_c[[i]][keep,]
+  }
+
+# Only Polychaeta and Ophiuroidea needs to be resampled
+keep <- grep("Polychaeta|Ophiuroidea", names(mac_c))
+
+# Simulated macrofauna size data
+cl<-makeCluster(4) # change the 4 to your number of CPU cores
+registerDoSNOW(cl) # register the SNOW parallel backend with the foreach package
+simu <- foreach(i=keep) %dopar% sample_fun(i)
+stopCluster(cl) # stop a SNOW cluster
+
+# Replace with the simulated Polychaeta and Ophiuroidea data 
+for(i in 1:length(keep)) mac_c[[keep[i]]] <- simu[[i]] 
+
+ggplot(data=ldply(mac_c), 
+       aes(x=log10(Wt), fill=Habitat))+
+  geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
+  facet_wrap(~Cruise, scales="free")+
+  labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
+  theme_bw() %+replace% large #%+replace% dark
+
+mac_s <- ldply(mac_c)
+```
+
 # Observed meiofauna size distribution
+## All meiofauna
+
 100 nematodes were randomly selected to measured body size. 
 ```{r, fig.height=6, fig.width=10}
 # Hapacticoid and others
@@ -105,7 +165,7 @@ for(i in 1:3){
 }
 
 # Get water depth
-mei <- cbind(depth[match(paste(mei$Cruise, mei$Station), paste(depth$Cruise, depth$Station)),], mei)
+mei <- cbind(depth[match(paste(mei$Cruise, mei$Station), paste(depth$Cruise, depth$Station)), "Region", "Date", "Longitude", "Latitude", "Depth", "Corer", "Area", "Sieve"], mei)
 mei$Wt <- mei$Size*(1.13)
 
 depth.bk <- c(200, 400, 600, 800, 1100)
@@ -119,8 +179,9 @@ mei <- splitBy(~Category+Cruise+Station, cbind(Category, mei))
 mei <- ldply(mei, .id=NULL)
 
 ggplot(data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
-       aes(x=log(Wt), fill=Habitat, colour=Habitat))+
+       aes(x=log(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
+  scale_fill_manual(values=c("black", "gray"))+
   facet_grid(Cruise~Category)+
   labs(y="Frequency", x=expression(Log~body~size~(mg~individual^-1)))+
   theme_bw()%+replace% large #%+replace% dark

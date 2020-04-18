@@ -46,8 +46,8 @@ There are two reasons that we need to simulate the macrofauna size distribution.
 
 ```{r, fig.width=10, fig.height=8}
 # Size (complete macrofauna specimen)
-mac_s <- subset(mac, Condition=="C")
-mac_s <- splitBy(~Category+Cruise+Station, mac_s)
+mac_c <- subset(mac, Condition=="C")
+mac_c <- splitBy(~Category+Cruise+Station, mac_c)
 
 # Abundance (specimen with head)
 mac_a <- subset(mac, !(Condition=="F" | is.na(Condition)))
@@ -59,19 +59,19 @@ mac_a$Abundance <- mac_a$Abundance*3
 
 # Total abundce in each sample
 sn <- with(mac_a, paste(Category, Cruise, Station, sep="|"))
-abund <- mac_a[match(names(mac_s), sn),]$Abundance
+abund <- mac_a[match(names(mac_c), sn),]$Abundance
 
 # Resample the size data (with replacement) by the total abundance in each sample
 sample_fun <-
   function(i){
-    keep <- sample(1:dim(mac_s[[i]])[1], si=abund[i], replace=TRUE)
-    mac_s[[i]][keep,]
+    keep <- sample(1:dim(mac_c[[i]])[1], si=abund[i], replace=TRUE)
+    mac_c[[i]][keep,]
   }
 
 # Simulated macrofauna size data
 cl<-makeCluster(4) # change the 4 to your number of CPU cores
 registerDoSNOW(cl) # register the SNOW parallel backend with the foreach package
-simu <- foreach(i=1:length(mac_s)) %dopar% sample_fun(i)
+simu <- foreach(i=1:length(mac_c)) %dopar% sample_fun(i)
 stopCluster(cl) # stop a SNOW cluster
 
 ggplot(data=ldply(simu), 

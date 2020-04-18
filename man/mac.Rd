@@ -17,8 +17,8 @@ Polychaeteta C = 0.53, Oligochaeta C = 0.53, Tanaidacea C = 0.4, Isopoda C = 0.2
 converted to soft-body wet mass assuming a density of 1.13 mg mm^3 (Gerlach et al., 1985).
 }
 \references{
-\item{Feller RJ, Warwick RM (1988) Energetics. In: Higgins RP, Thiel H (eds) Introduction to the study of meiofauna. Smithsonian Institution Press, Washington, DC, pp. 181–196}
-\item{Gerlach, S., Hahn, A., Schrage, M., 1985. Size spectra of benthic biomass and metabolism. Mar. Ecol. Prog. Ser. 26, 161–173}
-\item{Warwick RM, Gee JM (1984) Community structure of estuarine meiobenthos. Mar Ecol Prog Ser 18: 97–111}
+\itemize{Feller RJ, Warwick RM (1988) Energetics. In: Higgins RP, Thiel H (eds) Introduction to the study of meiofauna. Smithsonian Institution Press, Washington, DC, pp. 181–196}
+\itemize{Gerlach, S., Hahn, A., Schrage, M., 1985. Size spectra of benthic biomass and metabolism. Mar. Ecol. Prog. Ser. 26, 161–173}
+\itemize{Warwick RM, Gee JM (1984) Community structure of estuarine meiobenthos. Mar Ecol Prog Ser 18: 97–111}
 }
 \keyword{datasets}
