@@ -1,5 +1,5 @@
 ---
-title: "Macrofauna Size Spectrum & Biomass for OR1 1096, 1102, 1114, 1126"
+title: "Macrofauna Size Spectrum & Biomass for OR1 1096, 1102, 1114, 1126, 1128, 1132"
 author: "Chih-Lin Wei"
 date: "`r Sys.Date()`"
 output: 
@@ -12,7 +12,7 @@ output:
     highlight: tango  # specifies the syntax highlighting style
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 ```{r}
@@ -201,6 +201,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat")
 nbss <- cbind(info, nbss[, -1])
 
+wt <- wt[unlist(lapply(wt, length))>3]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
@@ -449,7 +450,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Taxon")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>7]
+wt <- wt[unlist(lapply(wt, length))>8]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])

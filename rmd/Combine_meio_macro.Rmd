@@ -1,7 +1,7 @@
 ---
 title: "Merge macrofauna and meiofauna size"
 author: "Chih-Lin Wei"
-date: "2020/3/4"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -44,7 +44,7 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 # Resample macrofauna size data
 There are two reasons that we need to simulate the macrofauna size distribution. Firstly, we sampled, on average, three core tubes per cruise/station; however, it was not always the case. Therefore, we need to re-sample the individual size data to the average number of individuals in 3 core tubes.  Secondly, polychaetes are easy to break off. We re-sampled the size data of complete polychaetes to match to the numbers of individual polychaete with a head (prostomium).
 
-```{r, fig.width=10, fig.height=8}
+```{r, fig.width=12, fig.height=8}
 # Size (complete macrofauna specimen)
 mac_c <- subset(mac, Condition=="C")
 mac_c <- splitBy(~Category+Cruise+Station, mac_c)
@@ -85,9 +85,9 @@ ggplot(data=ldply(simu),
 mac_s <- ldply(simu)
 ```
 
-```{r, fig.width=10, fig.height=4}
-# Only show 1096, 1114, 1126 macrofauna size simulation because only these cruise have ok polychaete sizes
-ggplot(data=subset(mac_s, Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
+```{r, fig.width=10, fig.height=6}
+# Only show 1096, 1114, 1126, 1128, 1132 macrofauna size simulation because only these cruise have ok polychaete sizes
+ggplot(data=subset(mac_s, Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132"), 
        aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
   scale_fill_manual(values=c("black", "gray"))+
@@ -95,12 +95,12 @@ ggplot(data=subset(mac_s, Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_112
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
-Only cruise 1096, 1114, and 1126 can be merged
+Only cruise 1096, 1114, 1126, 1128 and 1132 can be merged
 
 # Simulated meiofauna size distribtution
 Because not all meiofauna specimens were measured for their sizes, the size distribution of nematodes (from 100 random individuals), harpacticoids, and other taxa (as many as possible) were scaled to the total abundance in three multicore tubes by re-sampling the observed size measurements (with replacement).
 
-```{r, fig.width=10, fig.height=6}
+```{r, fig.width=10, fig.height=8}
 # Sorting data
 mei_a   <- read_excel("../excel/GPSC_meio_sorting_2016.08.18.xlsx", sheet=2)
 Category <- as.character(mei_a$Taxon)
@@ -134,7 +134,7 @@ registerDoSNOW(cl) # register the SNOW parallel backend with the foreach package
 simu <- foreach(i=1:length(mei)) %dopar% sample_fun(i)
 stopCluster(cl) # stop a SNOW cluster
 
-ggplot(data=subset(ldply(simu), Cruise=="OR1_1114"|Cruise=="OR1_1126"), 
+ggplot(data=subset(ldply(simu), Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132"), 
        aes(x=log10(Wt), fill=Habitat))+
   geom_density(alpha=0.5)+
   scale_fill_manual(values=c("black", "gray"))+
@@ -144,19 +144,19 @@ ggplot(data=subset(ldply(simu), Cruise=="OR1_1114"|Cruise=="OR1_1126"),
 
 mei_s <- ldply(simu)
 ```
-Both 1114 and 1126 meiofauna can be merged with macrofauna
+Only 1114, 1126, 1128, 1132 meiofauna can be merged with macrofauna
 
 # Merge meiofauna and macrofauna
 
 We combine the simulated meiofauna and macrofauna size data to give the total metazoan sizes from three multicore tubes.
 
-```{r, fig.width=10, fig.height=6}
-# OR1 1114, 1126
+```{r, fig.width=10, fig.height=8}
+# OR1 1114, 1126, 1128, 1132
 si <- merge(cbind(Class="Meiofauna", mei_s), cbind(Class="Macrofauna", mac_s), all=T)
 si$Habitat <- factor(si$Habitat, levels=c("Canyon", "Slope"))
 
 # Only use 1126 data in which the meiofauna data are available
-si <- si[grep("1114|1126", si$Cruise),]
+si <- si[grep("1114|1126|1128|1132", si$Cruise),]
 
 ggplot(data=subset(si, Category!="Others"), 
        aes(x=log10(Wt), fill=Habitat))+

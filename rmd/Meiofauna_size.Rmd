@@ -1,5 +1,5 @@
 ---
-title: "Meiofauna Size Spectrum & Biomass for OR1 1114 and 1126"
+title: "Meiofauna Size Spectrum & Biomass for OR1 1114, 1126, 1128, and 1132"
 author: "Chih-Lin Wei"
 date: "`r Sys.Date()`"
 output: 
@@ -64,7 +64,7 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 # https://github.com/andrew-edwards/fitting-size-spectra
 #source("PLBfunctions.r")
 
-hab <- splitBy(~Habitat, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"))
+hab <- splitBy(~Habitat, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 bks <- l2b(unlist(wt))
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
@@ -154,7 +154,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=7, fig.height=5}
-hab <- splitBy(~Cruise+Habitat, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"))
+hab <- splitBy(~Cruise+Habitat, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -249,7 +249,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=8, fig.height=6}
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -287,7 +287,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=8, fig.height=6}
 # Only keep Wt >1.220703e-04
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1.220703e-04))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1.220703e-04))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -343,7 +343,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 # NBSS and ISD by cruise, habitat and depth strata
 
 ```{r, fig.width=8, fig.height=6}
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mei, Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -379,7 +379,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=8, fig.height=6}
 # Only keep Wt >1.220703e-04
 
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1.220703e-04))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -437,7 +437,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=8, fig.height=6}
-hab <- splitBy(~Cruise+Habitat+Category, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126") & Category!="Others"))
+hab <- splitBy(~Cruise+Habitat+Category, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132") & Category!="Others"))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=LBNbiom.method)
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -475,7 +475,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=8, fig.height=6}
 # Only keep Wt > 
 
-hab <- splitBy(~Cruise+Habitat+Category, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126") & Category!="Others" & Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat+Category, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132") & Category!="Others" & Wt>1.220703e-04))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=LBNbiom.method)
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
