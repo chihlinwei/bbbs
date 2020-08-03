@@ -90,10 +90,6 @@ out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
 kable(out, align="c", caption="OR1_1102 GS4, OR1_1126 GC2, and OR1_1126 GC3 Tube 2 had very low abundance and only single replication. They are removed as outliers before plotting")
 
-# Outliers with very low abundance and only 1 replicate
-#bad <- with(out, (Cruise=="OR1_1102" & Station == "GS4")|(Cruise=="OR1_1126" & Station == "GC2")|(Cruise=="OR1_1126" & Station == "GC3" & Tube =="2"))
-#out <- subset(out, !bad)
-
 ggplot(data=out, 
        aes(x=Depth, y=log10(Density), 
            ymin=log10(Density-se), ymax=log10(Density+se),
@@ -145,7 +141,7 @@ ggplot(data=out,
 ## Per cruise
 
 ```{r, fig.height=5, fig.width=7}
-dat <- subset(mac, Size<100)
+dat <- mac
 
 dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
 # Remove outlier samples with only 1 individuals
@@ -154,7 +150,9 @@ bad <- with(dat, (Cruise=="OR1_1102" & Station == "GC1" & Deployment == 2 & Tube
               (Cruise=="OR1_1102" & Station == "GC4" & Deployment == 1 & Tube ==12)|
               (Cruise=="OR1_1126" & Station == "GC1" & Deployment == 1 & Tube ==8) |
               (Cruise=="OR1_1126" & Station == "GC2" & Deployment == 1 & Tube ==4)|
-              (Cruise=="OR1_1126" & Station == "GC3" & Deployment == 1 & Tube ==2))
+              (Cruise=="OR1_1126" & Station == "GC3" & Deployment == 1 & Tube ==2)|
+              (Cruise=="OR1_1128" & Station == "GC1" & Deployment == 1 & Tube == 2 & L == 11.81) # This single spcimen affect the total biomass too much
+            )
 dat <- subset(dat, !bad)
 
 

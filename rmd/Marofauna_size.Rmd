@@ -95,12 +95,12 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 7.812500e-03
+## Size classes >= 1e-02
 
 ```{r, fig.width=7, fig.height=5}
-# Only keep Wt > 7.812500e-03
+# Only keep Wt > 5.859375e-03
 
-hab <- splitBy(~Habitat, data=subset(mac_s, Condition=="C" &Wt>7.812500e-03))
+hab <- splitBy(~Habitat, data=subset(mac_s, Condition=="C" &Wt>=1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -188,12 +188,12 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 7.812500e-03
+## Size classes >= 1e-02
 
 ```{r, fig.width=10, fig.height=8}
-# Only keep Wt > 7.812500e-03
+# Only keep Wt >= 1e-02
 
-hab <- splitBy(~Cruise+Habitat, data=subset(mac_s, Condition=="C" & Wt>7.812500e-03))
+hab <- splitBy(~Cruise+Habitat, data=subset(mac_s, Condition=="C" & Wt>= 1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -284,12 +284,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw()%+replace% large #%+replace% dark
 ```
 
-## Size classes > 7.812500e-03
+## Size classes >= 1e-02
 
 ```{r, fig.width=8, fig.height=6}
-# Only keep Wt >7.812500e-03
+# Only keep Wt >= 1e-02
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mac_s, Condition=="C" & Wt>7.812500e-03))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mac_s, Condition=="C" & Wt>= 1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -379,12 +379,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw()%+replace% large #%+replace% dark
 ```
 
-## Size classes > 7.812500e-03
+## Size classes >= 1e-02
 
 ```{r, fig.width=10, fig.height=8}
-# Only keep size < 7.812500e-03
+# Only keep size >= 1e-02
 
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac_s, Wt > 7.812500e-03))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mac_s, Wt >= 1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -392,7 +392,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>21]
+wt <- wt[unlist(lapply(wt, length))>59]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
