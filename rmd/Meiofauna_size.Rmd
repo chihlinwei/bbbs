@@ -95,12 +95,12 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
 ```{r, fig.width=7, fig.height=5}
-# Only keep Wt > 1.220703e-04
+# Only keep Wt >= 1e-04
 
-hab <- splitBy(~Habitat, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1.220703e-04))
+hab <- splitBy(~Habitat, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -187,12 +187,12 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
 ```{r, fig.width=7, fig.height=5}
 # Only keep Wt > 1.220703e-04
 
-hab <- splitBy(~Cruise+Habitat, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -282,12 +282,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
 ```{r, fig.width=8, fig.height=6}
-# Only keep Wt >1.220703e-04
+# Only keep Wt >= 1e-03
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1.220703e-04))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -295,6 +295,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
+wt <- wt[unlist(lapply(wt, length))>63]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
@@ -377,9 +378,9 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```
 
 ```{r, fig.width=8, fig.height=6}
-# Only keep Wt >1.220703e-04
+# Only keep Wt >= 1e-03
 
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -387,7 +388,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>19]
+wt <- wt[unlist(lapply(wt, length))>38]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
@@ -470,12 +471,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
 ```{r, fig.width=8, fig.height=6}
 # Only keep Wt > 
 
-hab <- splitBy(~Cruise+Habitat+Category, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132") & Category!="Others" & Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat+Category, data=subset(mei, (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132") & Category!="Others" & Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=LBNbiom.method)
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -483,7 +484,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Category")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>22]
+wt <- wt[unlist(lapply(wt, length))>47]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])

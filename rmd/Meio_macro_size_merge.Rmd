@@ -91,12 +91,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-# Size classes > > 1.220703e-04
+# Size classes >= 1e-03
 
 ```{r, fig.width=7, fig.height=5}
-# Only use Wt> 1.220703e-04
+# Only use Wt>= 1e-03
 
-hab <- splitBy(~Habitat, data=subset(si, Wt>1.220703e-04))
+hab <- splitBy(~Habitat, data=subset(si, Wt>=1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -144,7 +144,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 # NBSS and ISD by cruise and habitat
 ## All size classes
 
-```{r, fig.width=7, fig.height=5}
+```{r, fig.width=7, fig.height=7}
 hab <- splitBy(~Cruise+Habitat, data=si)
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
@@ -178,12 +178,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
-```{r, fig.width=10, fig.height=5}
-# Only use Wt> 1.220703e-04
+```{r, fig.width=10, fig.height=10}
+# Only use Wt> 1e-03
 
-hab <- splitBy(~Cruise+Habitat, data=subset(si, Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat, data=subset(si, Wt>=1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -266,12 +266,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
 ```{r, fig.width=10, fig.height=5}
-# Only use Wt> 1.220703e-04
+# Only use Wt>= 1e-03
 
-hab <- splitBy(~Habitat+Depth.zone, data=subset(si, Wt>1.220703e-04))
+hab <- splitBy(~Habitat+Depth.zone, data=subset(si, Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -320,7 +320,7 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 # NBSS and ISD by cruise and depth strata (or station)
 ## All size classes
 
-```{r, fig.width=10, fig.height=5}
+```{r, fig.width=10, fig.height=10}
 hab <- splitBy(~Cruise+Habitat+Depth.zone, data=si)
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
@@ -354,12 +354,12 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Size classes > 1.220703e-04
+## Size classes >= 1e-03
 
-```{r, fig.width=10, fig.height=5}
-# Only use Wt> 1.220703e-04
+```{r, fig.width=10, fig.height=10}
+# Only use Wt>= 1e-03
 
-hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(si, Wt>1.220703e-04))
+hab <- splitBy(~Cruise+Habitat+Depth.zone, data=subset(si, Wt>= 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -367,7 +367,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-#wt <- wt[unlist(lapply(wt, length))>9]
+wt <- wt[unlist(lapply(wt, length))>174]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
@@ -409,9 +409,9 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=10, fig.height=5}
-hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")))
-hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1114"|Cruise=="OR1_1126")))
-hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")))
+hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")))
+hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")))
+hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")))
 hab <- rbind(ldply(hab_nem), ldply(hab_har), ldply(hab_pol))
 hab <- splitBy(~Habitat+Category, hab)
 
@@ -422,7 +422,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Category")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>21]
+#wt <- wt[unlist(lapply(wt, length))>21]
 out <- lapply(wt, FUN=MLE.method)
 
 ggplot(data=ldply(hab), 
@@ -453,9 +453,9 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=10, fig.height=5}
 # Only use Wt> 9.765625e-04 (harpacticoids), 9.765625e-04 (nematods), and 1.562500e-02 (polychaetes)
 
-hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1.562500e-02))
-hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126")&Wt>9.765625e-04))
-hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>9.765625e-04))
+hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1e-03))
+hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1e-03))
+hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1e-02))
 hab <- rbind(ldply(hab_nem), ldply(hab_har), ldply(hab_pol))
 hab <- splitBy(~Habitat+Category, hab)
 
@@ -466,7 +466,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Habitat", "Category")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>21]
+#wt <- wt[unlist(lapply(wt, length))>21]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])

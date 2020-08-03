@@ -1,7 +1,7 @@
 ---
 title: "Merged meiofauna and Macrofauna Size Spectrum"
 author: "Chih-Lin Wei"
-date: "4/9/2020"
+date: "`r Sys.Date()`"
 output: 
   html_document:
     toc: true # table of content true
@@ -121,11 +121,11 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=H
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-## Macrofauna size classes > 7.812500e-03 and meiofauna size classes > 1.220703e-04
+## Macrofauna size classes > 1e-02 and meiofauna size classes > 1e-03
 
 ```{r}
 # Macrofauna > 7.812500e-03
-hab <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna" & Wt> 7.812500e-03))
+hab <- splitBy(~Habitat, data=subset(si, Class=="Macrofauna" & Wt> 1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -149,7 +149,7 @@ names(info) <- "Habitat"
 SortWt_mac <- cbind(info, SortWt[, -1])
 
 # Meiofauna > 1.220703e-04
-hab <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna" & Wt> 1.220703e-04))
+hab <- splitBy(~Habitat, data=subset(si, Class=="Meiofauna" & Wt> 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)

@@ -54,12 +54,12 @@ col_types <- c("text", "text", "text", "numeric", "numeric", "text", "text", "te
 
 mac <- NULL
 for(i in 1:15){
-  d <- read_excel("../excel/GPSC_macro_size_2020.08.01.xlsx", sheet=i, col_types=col_types)
+  d <- read_excel("../excel/GPSC_macro_size_2020.08.03.xlsx", sheet=i, col_types=col_types)
   mac <- rbind(mac, d)
 }
 mac <- as.data.frame(mac)
 
-depth <- read_excel("../excel/GPSC_macro_sorting_2019.12.16.xlsx", sheet=1)
+depth <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=1)
 mac <- cbind(depth[match(paste(mac$Cruise, mac$Station), paste(depth$Cruise, depth$Station)), c("Region", "Date", "Longitude", "Latitude", "Depth", "Corer", "Area", "Sieve")], mac)
 mac$Wt <- mac$Size*(1.13)
 

@@ -98,7 +98,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ## Size classes >= 1e-02
 
 ```{r, fig.width=7, fig.height=5}
-# Only keep Wt > 5.859375e-03
+# Only keep Wt > 1e-02
 
 hab <- splitBy(~Habitat, data=subset(mac_s, Condition=="C" &Wt>=1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
@@ -392,7 +392,7 @@ info <- ldply(strsplit(nbss$.id, split="[|]"))
 names(info) <- c("Cruise", "Habitat", "Depth")
 nbss <- cbind(info, nbss[, -1])
 
-wt <- wt[unlist(lapply(wt, length))>59]
+wt <- wt[unlist(lapply(wt, length))>62]
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
 lapply(out, FUN=function(x)x[1:2])
