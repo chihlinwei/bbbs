@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 ```{r}
@@ -119,7 +119,7 @@ kable(dat.mean.mean)
 # Mean biomass
 ## Per cruise
 ```{r, fig.width=7, fig.height=5}
-dat.sum <- summaryBy(Wt~Cruise+Station+Deployment+Tube+Subcore, data=mei, FUN=sum, keep.names = TRUE)
+dat.sum <- summaryBy(Wt~Cruise+Station+Deployment+Tube+Subcore, data=mei_s, FUN=sum, keep.names = TRUE)
 dat.sum$Biomass <- dat.sum$Wt/(pi*(2.5/2)^2/10000)
 dat.mean <- summaryBy(Biomass~Cruise+Station, data=dat.sum, FUN=c(mean, sd, length), keep.names = TRUE)
 dat.mean$Biomass.se <- dat.mean$Biomass.sd/dat.mean$Biomass.length^0.5

@@ -12,5 +12,51 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(bbbs)
 library(BenthicPro)
+library(ggplot2)
+library(plyr)
+library(doBy)
+library(readxl)
+
+large <- theme(legend.title = element_text(size=20),
+        legend.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=20))
+rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+
+# dark theme for ggplot
+dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
+        panel.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.title = element_text(colour = 'white', size=20),
+        legend.text = element_text(colour = 'white', size=20),
+        axis.title = element_text(colour = 'white', size=20),
+        axis.text = element_text(colour = 'white', size=20),
+        axis.ticks = element_line(colour = 'white'),
+        panel.border = element_rect(fill = 'NA', colour = 'white'), 
+        panel.grid.major = element_line(colour = 'gray30'),
+        panel.grid.minor = element_line(colour = 'gray20'))
+```
+
+```{r}
+dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
+dat.sum <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=dat, FUN=c(sum, length))
+names(dat.sum)[-1:-6] <- c("Wt", "Abundance")
+
+# Convert the numbers of polychaete specimen (with head) to abundance
+pols <- subset(mac, Taxon=="Polychaeta" & (Condition=="FH" | Condition=="C" | Condition=="FHT"))
+pola <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Abundance", keep.names = T)
+keep <- match(with(pola, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
+dat.sum$Abundance[keep] <- pola$Abundance
+
+# Convert the numbers of complete ophiroid specimens to abundance
+ophs <- subset(mac, Taxon=="Ophiuroidea" & Condition=="C")
+opha <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=ophs, FUN=length, var.names="Abundance", keep.names = T)
+keep <- match(with(opha, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
+dat.sum$Abundance[keep] <- opha$Abundance
+
+
+out <- cbind(Taxon=unique(c(mei$Taxon, mac$Taxon)), ConFac_j2mgwm=NA, Mollusca=NA, Annelida=NA, Crustacea=NA, Echinodermata=NA, Insecta=NA, Infauna=NA, Sessile=NA, Crawler=NA, FacultativeSwimmer=NA, Herbivore=NA, Omnivore=NA, Carnivore=NA, Lake=NA, River=NA, Marine=NA, Subtidal=NA, Exploited=NA)
+write.csv(out, na="", row.names=FALSE, file="../excel/trait.csv")
+write.csv(BenthProdExampleData, na="", row.names=FALSE, file="../excel/BenthProdExampleData.csv")
 ```
 

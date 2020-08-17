@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 Analyze meiofauna size (from OR1 1114 and 1126) and macrofauna size (from OR1 1096, 1102, 1114, 1126, 1128, 1132) seperatedly but and plot them together. This means that both meiofauna and macrofauna are in their raw abundance. These are same as the analyses of meiofauna_size.rmd and macrofauna_size.rmd.
@@ -66,10 +66,10 @@ The same fitted line (with 95% confidence interval) was plotted on the individua
 # https://github.com/andrew-edwards/fitting-size-spectra
 #source("PLBfunctions.r")
 
-bks <- l2b(c(mei$Wt, mac$Wt))
+bks <- l2b(c(mei_s$Wt, mac_s$Wt))
 
 # Macrofauna
-hab_mac <- splitBy(~Habitat, mac)
+hab_mac <- splitBy(~Habitat, mac_s)
 wt <- lapply(hab_mac, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -78,7 +78,7 @@ names(info) <- "Habitat"
 nbss_mac <- cbind(info, nbss[, -1])
 
 # Meiofauna
-hab_mei <- splitBy(~Habitat, data=mei)
+hab_mei <- splitBy(~Habitat, data=mei_s)
 wt <- lapply(hab_mei, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -125,7 +125,7 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=H
 
 ```{r}
 # Macrofauna > 1e-02
-hab <- splitBy(~Habitat, data=subset(mac, Wt> 1e-02))
+hab <- splitBy(~Habitat, data=subset(mac_s, Wt> 1e-02))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)
@@ -149,7 +149,7 @@ names(info) <- "Habitat"
 SortWt_mac <- cbind(info, SortWt[, -1])
 
 # Meiofauna > 1e-03
-hab <- splitBy(~Habitat, data=subset(mei, Wt> 1e-03))
+hab <- splitBy(~Habitat, data=subset(mei_s, Wt> 1e-03))
 wt <- lapply(hab, FUN=function(x)x$Wt)
 out <- lapply(wt, FUN=function(x)LBNbiom.method(x, binBreaks=bks))
 nbss <- ldply(lapply(out, FUN=function(x)x$binVals), data.frame)

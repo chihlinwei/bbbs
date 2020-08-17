@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 Meiofauna and macrofauna size from OR1 1114 and 1126 were merged but analyzed seperatedly.

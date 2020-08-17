@@ -63,10 +63,12 @@ pola <- cbind(pola[, 1:4], Section="0-15", pola[, 5:6], Comment="")
 # Replace polycahete sorting abundance with correct abundance from size data
 sort <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=2)
 sort <- rbind(subset(sort, Taxon!="Polychaeta"), pola)
+# Remove Cyclopoida and Calanoida
+subset(sort, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
 # Total abundance by tube
 abun <- summaryBy(Abundance~Cruise+Station+Deployment+Tube, data=as.data.frame(sort), FUN=sum, keep.names = TRUE)
 depth <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=1)
-abun <- cbind(depth[match(paste(abun$Cruise, abun$Station), paste(depth$Cruise, depth$Station)),], abun)
+abun <- cbind(depth[match(paste(abun$Cruise, abun$Station), paste(depth$Cruise, depth$Station)),], Abundance=abun$Abundance)
 
 
 dat <- subset(abun, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|(Cruise=="OR1_1132" & Station == "GS1"))

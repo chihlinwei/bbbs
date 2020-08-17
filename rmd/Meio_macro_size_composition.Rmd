@@ -1,0 +1,75 @@
+---
+title: "Meiofauna and Macrofauna Size Spectrum"
+author: "Chih-Lin Wei"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###) 
+    toc_float: true
+    number_sections: true  ## if you want number sections at each table header
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+Analyze meiofauna size (from OR1 1114 and 1126) and macrofauna size (from OR1 1096, 1102, 1114, 1126, 1128, 1132) seperatedly but and plot them together. This means that both meiofauna and macrofauna are in their raw abundance. These are same as the analyses of meiofauna_size.rmd and macrofauna_size.rmd.
+
+```{r}
+library(bbbs)
+library(ggplot2)
+library(plyr)
+library(doBy)
+library(readxl)
+library(reshape2)
+#library(devtools)
+#install_github("andrew-edwards/sizeSpectra")
+#library(sizeSpectra)
+
+large <- theme(legend.title = element_text(size=20),
+        legend.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=20))
+
+rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+
+# dark theme for ggplot
+dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
+        panel.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.title = element_text(colour = 'white', size=20),
+        legend.text = element_text(colour = 'white', size=20),
+        axis.title = element_text(colour = 'white', size=20),
+        axis.text = element_text(colour = 'white', size=20),
+        axis.ticks = element_line(colour = 'white'),
+        panel.border = element_rect(fill = 'NA', colour = 'white'), 
+        panel.grid.major = element_line(colour = 'gray30'),
+        panel.grid.minor = element_line(colour = 'gray20'))
+# log2 bin
+l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
+```
+
+
+## All size classes
+
+```{r, fig.width=8.1, fig.height=5}
+# Use functions from Edwards etal. (2017) Methods in Ecology and Evolution 1:57-67
+# https://github.com/andrew-edwards/fitting-size-spectra
+#source("PLBfunctions.r")
+
+bks <- l2b(c(mei_s$Wt, mac_s$Wt))
+
+mei_s$Class <- cut(mei_s$Wt, breaks=bks)
+mac_s$Class <- cut(mac_s$Wt, breaks=bks)
+
+acast(mei_s, Cruise+Habitat+Station+Deployment+Tube+Subcore~Class, value.var = "Wt", fun.aggregate=sum)
+
+
+```
+
+
+
+
