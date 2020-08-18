@@ -21,10 +21,12 @@ Analyze meiofauna size (from OR1 1114 and 1126) and macrofauna size (from OR1 10
 ```{r}
 library(bbbs)
 library(ggplot2)
+library(ggrepel)
 library(plyr)
 library(doBy)
 library(readxl)
 library(reshape2)
+library(vegan)
 #library(devtools)
 #install_github("andrew-edwards/sizeSpectra")
 #library(sizeSpectra)
@@ -50,26 +52,60 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
         panel.grid.minor = element_line(colour = 'gray20'))
 # log2 bin
 l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
-```
-
-
-## All size classes
-
-```{r, fig.width=8.1, fig.height=5}
-# Use functions from Edwards etal. (2017) Methods in Ecology and Evolution 1:57-67
-# https://github.com/andrew-edwards/fitting-size-spectra
-#source("PLBfunctions.r")
 
 bks <- l2b(c(mei_s$Wt, mac_s$Wt))
-
-mei_s$Class <- cut(mei_s$Wt, breaks=bks)
-mac_s$Class <- cut(mac_s$Wt, breaks=bks)
-
-acast(mei_s, Cruise+Habitat+Station+Deployment+Tube+Subcore~Class, value.var = "Wt", fun.aggregate=sum)
-
-
 ```
 
 
+# Meiofauna size composition
+
+```{r, fig.width=8.1, fig.height=5}
+mei_s$Class <- cut(mei_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1)) 
+
+mei_sc <- acast(mei_s, Cruise+Habitat+Station+Deployment+Tube+Subcore~Class, value.var = "Wt", fun.aggregate=sum)
+fr <- strsplit(row.names(mei_sc), split="_") %>%ldply
+fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
+names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Subcore")
+
+mei_md <- metaMDS(mei_sc, distance = "bray")
+stress <- paste("Stress = ", deparse(round(mei_md$stress,2)))
+wa <- wascores(mei_md$points, mei_sc) %>% as.data.frame
+wa$label <- row.names(wa) %>% as.numeric
+
+ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
+  geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  #geom_point(data=cbind(mei_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
+  stat_ellipse(type="norm")+
+  annotate("text", x=-2, y=1.5, label=stress, size=5) +
+  geom_label_repel(data=wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
+             fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
+  theme_bw() %+replace% large
+```
+
+# Macrofauna size composition
+
+```{r}
+mac_s$Class <- cut(mac_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1))
+
+mac_sc <- acast(mac_s, Cruise+Habitat+Station+Deployment+Tube~Class, value.var = "Wt", fun.aggregate=sum)
+fr <- strsplit(row.names(mac_sc), split="_") %>%ldply
+fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
+names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube")
+
+mac_md <- metaMDS(mac_sc, distance = "bray")
+stress <- paste("Stress = ", deparse(round(mac_md$stress,2)))
+wa <- wascores(mac_md$points, mac_sc) %>% as.data.frame
+wa$label <- row.names(wa) %>% as.numeric
+
+
+ggplot(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
+  geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  #geom_point(data=cbind(mac_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
+  stat_ellipse(type="norm")+
+  annotate("text", x=-1.5, y=1.5, label=stress, size=5) +
+  geom_label_repel(data=wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
+             fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
+  theme_bw() %+replace% large
+```
 
 
