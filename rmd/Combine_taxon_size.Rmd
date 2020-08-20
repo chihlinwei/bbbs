@@ -256,11 +256,65 @@ ggplot(data=mei_s,
   theme_bw() %+replace% large  #%+replace% dark
 ```
 
+# Environmental data
+
+```{r}
+# CTD data
+ctd <- as.data.frame(read_excel("../excel/GPSC_CTD_2020.07.23.xlsx", sheet=1))
+ctd <- splitBy(~Cruise+Station, ctd)
+
+# Function to get average of bottom 3 deepest CTD data
+deep_fun <- function(x) {
+   dat <- x[order(x$pressure, decreasing=TRUE)[1:3],]
+   summaryBy(.~Cruise+Station, data=dat, keep.names=TRUE, na.rm=TRUE)
+}
+
+ctd <- lapply(ctd, FUN=deep_fun)
+ctd <- ldply(ctd)[, -1]
+ctd$transmissometer[ctd$transmissometer<=0] <- 0 # Set negtive transmissometer to zero
+
+# Average temperature, sigma_theta and density
+ctd$Temperature <- rowMeans(ctd[, c("temperature_T1", "temperature_T2")], na.rm=TRUE)
+ctd$Salinity <- rowMeans(ctd[, c("salinity_T1C1", "salinity_T2C2")], na.rm=TRUE)
+ctd$Sigma_theta <- rowMeans(ctd[, c("density_T1C1...11", "density_T2C2...12")], na.rm=TRUE)
+ctd$Density <- rowMeans(ctd[, c("density_T1C1...13", "density_T2C2...14")], na.rm=TRUE)
+ctd <- subset(ctd, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|(Cruise=="OR1_1132"&Station=="GS1"))
+ctd <- ctd[order(ctd$Cruise, ctd$Station),]
+ctd <- ctd[, c("Cruise", "Station", "Latitude", "Longitude", "pressure", "Temperature", "Salinity", "Density", "Oxygen", "fluorometer", "transmissometer")]
+
+# Sediment data
+col_types <- c(rep("text", 2), "numeric", "text", rep("numeric", 13))
+sed <- as.data.frame(read_excel("../excel/GPSC_sediment_2020.06.17.xlsx", sheet=1, col_types=col_types))
+sed <- sed[sed$Section=="0-1",]
+sed <- subset(sed, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|(Cruise=="OR1_1132"&Station=="GS1"))
+sed <- sed[order(sed$Cruise, sed$Station),]
+sed <- sed[, c("Cruise", "Station", "Deployment", "Section", "Clay", "Silt", "Sand", "CN", "TOC", "TN", "WC", "WW", "DW")]
+
+loc <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=1)
+loc <- subset(loc, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|(Cruise=="OR1_1132"&Station=="GS1"))
+loc <- summaryBy(Longitude+Latitude+Depth~Cruise+Station+Habitat, data=as.data.frame(loc), FUN=mean, keep.names = TRUE)
+sed <- cbind(loc, sed[, -1:-3])
+
+
+# Calculate porosity
+# Pore space volume using pore water mass bottom water density
+# Fill in seawater desnity for sites not having CTD data 
+library(seacarb)
+
+dens <- ctd$Density
+vp <- (sed$WW-sed$DW)/(dens/1000)
+# Dry sediment volume assuming density of 2.65 g/cm3 
+vb <- sed$DW/2.65
+sed$Porosity <- vp/(vp+vb)
+```
+
 
 ```{r}
 save(mac, file="../data/mac.rda")
 save(mei, file="../data/mei.rda")
 save(mac_s, file="../data/mac_s.rda")
 save(mei_s, file="../data/mei_s.rda")
+save(ctd, file="../data/ctd.rda")
+save(sed, file="../data/sed.rda")
 ```
 
