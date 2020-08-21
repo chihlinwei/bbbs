@@ -409,9 +409,9 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat))+
 ## All size classes
 
 ```{r, fig.width=10, fig.height=5}
-hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")))
-hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")))
-hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")))
+hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")))
+hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1114"|Cruise=="OR1_1126")))
+hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")))
 hab <- rbind(ldply(hab_nem), ldply(hab_har), ldply(hab_pol))
 hab <- splitBy(~Habitat+Category, hab)
 
@@ -453,9 +453,9 @@ ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat))+
 ```{r, fig.width=10, fig.height=5}
 # Only use Wt> 9.765625e-04 (harpacticoids), 9.765625e-04 (nematods), and 1.562500e-02 (polychaetes)
 
-hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1e-03))
-hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1e-03))
-hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")&Wt>1e-02))
+hab_pol <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Polychaeta" & (Cruise=="OR1_1096"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1e-03))
+hab_nem <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Nematoda" &  (Cruise=="OR1_1126"|Cruise=="OR1_1126")&Wt>1e-03))
+hab_har <- splitBy(~Cruise+Habitat+Category, data=subset(si, Category=="Harpacticoida" & (Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")&Wt>1e-02))
 hab <- rbind(ldply(hab_nem), ldply(hab_har), ldply(hab_pol))
 hab <- splitBy(~Habitat+Category, hab)
 

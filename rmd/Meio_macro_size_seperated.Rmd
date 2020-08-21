@@ -16,7 +16,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
-Analyze meiofauna size (from OR1 1114 and 1126) and macrofauna size (from OR1 1096, 1102, 1114, 1126, 1128, 1132) seperatedly but and plot them together. This means that both meiofauna and macrofauna are in their raw abundance. These are same as the analyses of meiofauna_size.rmd and macrofauna_size.rmd.
+Analyze meiofauna size (from OR1 1114 and 1126) and macrofauna size (from OR1 1096, 1102, 1114, 1126) seperatedly but and plot them together. This means that both meiofauna and macrofauna are in their raw abundance. These are same as the analyses of meiofauna_size.rmd and macrofauna_size.rmd.
 
 ```{r}
 library(bbbs)

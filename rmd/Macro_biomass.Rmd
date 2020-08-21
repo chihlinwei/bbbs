@@ -13,7 +13,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 
@@ -64,14 +64,14 @@ pola <- cbind(pola[, 1:4], Section="0-15", pola[, 5:6], Comment="")
 sort <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=2)
 sort <- rbind(subset(sort, Taxon!="Polychaeta"), pola)
 # Remove Cyclopoida and Calanoida
-subset(sort, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
+sort <- subset(sort, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
 # Total abundance by tube
 abun <- summaryBy(Abundance~Cruise+Station+Deployment+Tube, data=as.data.frame(sort), FUN=sum, keep.names = TRUE)
 depth <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=1)
 abun <- cbind(depth[match(paste(abun$Cruise, abun$Station), paste(depth$Cruise, depth$Station)),], Abundance=abun$Abundance)
 
 
-dat <- subset(abun, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|(Cruise=="OR1_1132" & Station == "GS1"))
+dat <- subset(abun, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 # Remove outlier samples with only 1 individuals
 bad <- with(dat, Abundance <=1 | (Cruise=="OR1_1102" & Station == "GS4") )
 dat <- subset(dat, !bad)
@@ -145,15 +145,14 @@ ggplot(data=out,
 ```{r, fig.height=5, fig.width=7}
 dat <- mac
 
-dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
+dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 # Remove outlier samples with only 1 individuals
 bad <- with(dat, (Cruise=="OR1_1102" & Station == "GC1" & Deployment == 2 & Tube ==1)|
               (Cruise=="OR1_1102" & Station == "GS4" & Deployment == 1 & Tube ==1)|
               (Cruise=="OR1_1102" & Station == "GC4" & Deployment == 1 & Tube ==12)|
               (Cruise=="OR1_1126" & Station == "GC1" & Deployment == 1 & Tube ==8) |
               (Cruise=="OR1_1126" & Station == "GC2" & Deployment == 1 & Tube ==4)|
-              (Cruise=="OR1_1126" & Station == "GC3" & Deployment == 1 & Tube ==2)|
-              (Cruise=="OR1_1128" & Station == "GC1" & Deployment == 1 & Tube == 2 & L == 11.81) # This single spcimen affect the total biomass too much
+              (Cruise=="OR1_1126" & Station == "GC3" & Deployment == 1 & Tube ==2)
             )
 dat <- subset(dat, !bad)
 
