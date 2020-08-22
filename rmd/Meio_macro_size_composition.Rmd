@@ -27,9 +27,7 @@ library(doBy)
 library(readxl)
 library(reshape2)
 library(vegan)
-#library(devtools)
-#install_github("andrew-edwards/sizeSpectra")
-#library(sizeSpectra)
+
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -50,6 +48,11 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
         panel.border = element_rect(fill = 'NA', colour = 'white'), 
         panel.grid.major = element_line(colour = 'gray30'),
         panel.grid.minor = element_line(colour = 'gray20'))
+
+jet.colors <-
+  colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
+                     "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+
 # log2 bin
 l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 
@@ -67,20 +70,44 @@ fr <- strsplit(row.names(mei_sc), split="_") %>%ldply
 fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
 names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Subcore")
 
+# NMDS
 mei_md <- metaMDS(mei_sc, distance = "bray")
 stress <- paste("Stress = ", deparse(round(mei_md$stress,2)))
-wa <- wascores(mei_md$points, mei_sc) %>% as.data.frame
-wa$label <- row.names(wa) %>% as.numeric
+
+# Weighted Averages Scores
+mei_wa <- wascores(mei_md$points, mei_sc) %>% as.data.frame
+mei_wa$label <- row.names(mei_wa) %>% as.numeric
 
 ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mei_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
-  stat_ellipse(type="norm")+
+  #stat_ellipse(type="norm")+
   annotate("text", x=-2, y=1.5, label=stress, size=5) +
-  geom_label_repel(data=wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
+  geom_label_repel(data=mei_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
 ```
+
+```{r, fig.width=8.1, fig.height=5}
+#ordisurf:
+mei_or <- ordisurf(wa[,-3], wa$label)
+mei_gr <- expand.grid(x = mei_or$grid$x, y = mei_or$grid$y) #get x and ys
+mei_gr$z <- as.vector(mei_or$grid$z) #unravel the matrix for the z scores
+mei_gr <- data.frame(na.omit(mei_gr)) #gets rid of the nas
+
+
+
+ggplot()+
+  stat_contour(data = mei_gr, aes(x = x, y = y, z = z, colour = ..level..))+
+  #scale_colour_gradient()+
+  geom_point(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  labs(colour = "Size")+
+  #stat_ellipse(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat), type="norm")+
+  annotate("text", x=-2, y=1.5, label=stress, size=5) +
+  theme_bw() %+replace% large
+
+```
+
 
 # Macrofauna size composition
 
