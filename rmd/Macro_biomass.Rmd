@@ -146,16 +146,6 @@ ggplot(data=out,
 dat <- mac
 
 dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
-# Remove outlier samples with only 1 individuals
-bad <- with(dat, (Cruise=="OR1_1102" & Station == "GC1" & Deployment == 2 & Tube ==1)|
-              (Cruise=="OR1_1102" & Station == "GS4" & Deployment == 1 & Tube ==1)|
-              (Cruise=="OR1_1102" & Station == "GC4" & Deployment == 1 & Tube ==12)|
-              (Cruise=="OR1_1126" & Station == "GC1" & Deployment == 1 & Tube ==8) |
-              (Cruise=="OR1_1126" & Station == "GC2" & Deployment == 1 & Tube ==4)|
-              (Cruise=="OR1_1126" & Station == "GC3" & Deployment == 1 & Tube ==2)
-            )
-dat <- subset(dat, !bad)
-
 
 dat.sum <- summaryBy(Size+Area+Longitude+Latitude+Depth~Habitat+Cruise+Station+Deployment+Tube, data=dat, FUN=c(sum, mean))
 dat.sum$Biomass <- dat.sum$Size.sum/dat.sum$Area.mean
@@ -172,7 +162,7 @@ out$Depth <- round(out$Depth, 0)
 out$Biomass <- round(out$Biomass, 0)
 out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
-kable(out, align="c", caption="OR1_1102 GS4 and OR1_1126 GC2 had very low abundance and only single replication. They are removed as outliers before plotting")
+kable(out, align="c")
 
 ggplot(data=out, 
        aes(x=Depth, y=log10(Biomass), 

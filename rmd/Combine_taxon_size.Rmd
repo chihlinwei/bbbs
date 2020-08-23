@@ -75,6 +75,16 @@ Category[Category=="Oligochaeta"|Category=="Nemertea"|Category=="Sipuncula"|Cate
 mac <- cbind(Category, mac)
 mac <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 
+# Remove outlier samples with only 1 individuals
+bad <- with(mac, (Cruise=="OR1_1102" & Station == "GC1" & Deployment == 2 & Tube ==1)|
+              (Cruise=="OR1_1102" & Station == "GS4" & Deployment == 1 & Tube ==1)|
+              (Cruise=="OR1_1102" & Station == "GC4" & Deployment == 1 & Tube ==12)|
+              (Cruise=="OR1_1126" & Station == "GC1" & Deployment == 1 & Tube ==8) |
+              (Cruise=="OR1_1126" & Station == "GC2" & Deployment == 1 & Tube ==4)|
+              (Cruise=="OR1_1126" & Station == "GC3" & Deployment == 1 & Tube ==2)
+            )
+mac <- subset(mac, !bad)
+
 # Size (complete specimen)
 mac_c <- subset(mac, Condition=="C")
 

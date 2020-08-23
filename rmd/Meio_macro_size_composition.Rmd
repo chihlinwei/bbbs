@@ -13,10 +13,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
-
-Analyze meiofauna size (from OR1 1114 and 1126) and macrofauna size (from OR1 1096, 1102, 1114, 1126) seperatedly but and plot them together. This means that both meiofauna and macrofauna are in their raw abundance. These are same as the analyses of meiofauna_size.rmd and macrofauna_size.rmd.
 
 ```{r}
 library(bbbs)
@@ -27,6 +25,9 @@ library(doBy)
 library(readxl)
 library(reshape2)
 library(vegan)
+library(RColorBrewer)
+library(metR)
+library(knitr)
 
 
 large <- theme(legend.title = element_text(size=20),
@@ -59,18 +60,22 @@ l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 bks <- l2b(c(mei_s$Wt, mac_s$Wt))
 ```
 
+Individual size of meiofauna and macrofauna were binned by log2 transformation of their biomass. The total biomass of each size bin and each sample was than calculated as size composition for further multivariate analysis. 
 
 # Meiofauna size composition
+## Per sample
 
 ```{r, fig.width=8.1, fig.height=5}
 mei_s$Class <- cut(mei_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1)) 
 
-mei_sc <- acast(mei_s, Cruise+Habitat+Station+Deployment+Tube+Subcore~Class, value.var = "Wt", fun.aggregate=sum)
+mei_sc <- acast(mei_s, Cruise+Habitat+Station+Deployment+Tube+Subcore+Depth~Class, value.var = "Wt", fun.aggregate=sum)
 fr <- strsplit(row.names(mei_sc), split="_") %>%ldply
 fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
-names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Subcore")
+names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Subcore", "Depth")
+fr$Depth <- as.numeric(fr$Depth)
 
-# NMDS
+
+# nMDS
 mei_md <- metaMDS(mei_sc, distance = "bray")
 stress <- paste("Stress = ", deparse(round(mei_md$stress,2)))
 
@@ -79,60 +84,129 @@ mei_wa <- wascores(mei_md$points, mei_sc) %>% as.data.frame
 mei_wa$label <- row.names(mei_wa) %>% as.numeric
 
 ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
+  stat_ellipse(type="norm", geom="polygon", alpha=0.2, colour="transparent")+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mei_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
-  #stat_ellipse(type="norm")+
   annotate("text", x=-2, y=1.5, label=stress, size=5) +
   geom_label_repel(data=mei_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
 ```
 
-```{r, fig.width=8.1, fig.height=5}
-#ordisurf:
-mei_or <- ordisurf(wa[,-3], wa$label)
+nMDS on size composition of meiofauna. Labels show the weighted averages scores for each size class and the text inside label indicates the log10 of the mid point of the size class.
+
+```{r}
+# ordisurf:
+mei_or <- ordisurf(mei_wa[,-3], mei_wa$label, plot = FALSE)
+summary(mei_or)
 mei_gr <- expand.grid(x = mei_or$grid$x, y = mei_or$grid$y) #get x and ys
 mei_gr$z <- as.vector(mei_or$grid$z) #unravel the matrix for the z scores
 mei_gr <- data.frame(na.omit(mei_gr)) #gets rid of the nas
 
-
-
-ggplot()+
-  stat_contour(data = mei_gr, aes(x = x, y = y, z = z, colour = ..level..))+
-  #scale_colour_gradient()+
-  geom_point(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
-  labs(colour = "Size")+
-  #stat_ellipse(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat), type="norm")+
-  annotate("text", x=-2, y=1.5, label=stress, size=5) +
-  theme_bw() %+replace% large
-
+# Predict ordisurf
+newdata <- expand.grid(x1=seq(min(mei_md$points[,1]),  max(mei_md$points[,1]), len = 10), x2= seq(min(mei_md$points[,2]),  max(mei_md$points[,2]), len=10))
+mei_gr2 <- cbind(newdata, z= predict(mei_or, newdata))
+names(mei_gr2) <- c("x", "y", "z")
 ```
 
+```{r, fig.width=8.1, fig.height=5}
+ggplot()+
+  stat_ellipse(data=cbind(mei_md$points, fr), geom = "polygon", aes(x=MDS1, y=MDS2, fill=Habitat), alpha = 0.2, type="norm")+
+  stat_contour(data = mei_gr2, aes(x = x, y = y, z = z, colour=..level..), binwidth = 0.5)+
+  geom_text_contour(data = mei_gr2, aes(x = x, y = y, z = z), colour="#08306b")+
+  geom_point(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  labs(x="MDS1", y="MDS2", colour="Size")+
+  annotate("text", x=-2, y=1.5, label=stress, size=5)+
+  theme_bw() %+replace% large
+```
 
-# Macrofauna size composition
+nMDS on size composition of meiofauna. Contours show the weighted averages scores for each size class. The text on the contours and color scale indicate the log10 of the mid point of the size class.
+
+## Per station
 
 ```{r}
+mei_sc2 <- acast(mei_s, Cruise+Habitat+Station+Depth~Class, value.var = "Wt", fun.aggregate=mean, na.rm=TRUE)
+mei_sc2[is.na(mei_sc2)] <- 0
+fr <- strsplit(row.names(mei_sc2), split="_") %>%ldply
+fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
+names(fr) <- c("Cruise", "Habitat", "Station", "Depth")
+fr$Depth <- as.numeric(fr$Depth)
+
+# Main effect
+f <- adonis(mei_sc2~Habitat+Cruise+Depth+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=fr, method="bray")
+kable(f$aov.tab)
+```
+
+# Macrofauna size composition
+## Per sample
+
+```{r, fig.width=8.1, fig.height=5}
 mac_s$Class <- cut(mac_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1))
 
-mac_sc <- acast(mac_s, Cruise+Habitat+Station+Deployment+Tube~Class, value.var = "Wt", fun.aggregate=sum)
+mac_sc <- acast(mac_s, Cruise+Habitat+Station+Deployment+Tube~Class, value.var = "Wt", fun.aggregate=sum)[-39,]
 fr <- strsplit(row.names(mac_sc), split="_") %>%ldply
 fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
 names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube")
 
+# nMDS
 mac_md <- metaMDS(mac_sc, distance = "bray")
 stress <- paste("Stress = ", deparse(round(mac_md$stress,2)))
-wa <- wascores(mac_md$points, mac_sc) %>% as.data.frame
-wa$label <- row.names(wa) %>% as.numeric
+
+# Weighted Averages Scores
+mac_wa <- wascores(mac_md$points, mac_sc, expand = TRUE) %>% as.data.frame
+mac_wa$label <- row.names(mac_wa) %>% as.numeric
 
 
 ggplot(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
+  stat_ellipse(type="norm", geom="polygon", alpha=0.2, colour="transparent")+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mac_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
-  stat_ellipse(type="norm")+
-  annotate("text", x=-1.5, y=1.5, label=stress, size=5) +
-  geom_label_repel(data=wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
+  annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
+  geom_label_repel(data=mac_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
 ```
 
+nMDS on size composition of macrofauna. Labels show the weighted averages scores for each size class and the text inside label indicates the log10 of the mid point of the size class.
 
+```{r}
+# ordisurf:
+mac_or <- ordisurf(mac_wa[,-3], mac_wa$labe, plot=FALSE)
+summary(mac_or)
+mac_gr <- expand.grid(x = mac_or$grid$x, y = mac_or$grid$y) #get x and ys
+mac_gr$z <- as.vector(mac_or$grid$z) #unravel the matrix for the z scores
+mac_gr <- data.frame(na.omit(mac_gr)) #gets rid of the nas
+
+# Predict ordisurf
+newdata <- expand.grid(x1=seq(min(mac_md$points[,1]),  max(mac_md$points[,1]), len = 10), x2= seq(min(mac_md$points[,2]),  max(mac_md$points[,2]), len=10))
+mac_gr2 <- cbind(newdata, z= predict(mac_or, newdata))
+names(mac_gr2) <- c("x", "y", "z")
+```
+
+```{r, fig.width=8.1, fig.height=5}
+ggplot()+
+  stat_ellipse(data=cbind(mac_md$points, fr), geom = "polygon", aes(x=MDS1, y=MDS2, fill=Habitat), alpha = 0.2, type="norm")+
+  #stat_contour(data = mac_gr, aes(x = x, y = y, z = z, colour=..level..))+
+  #geom_text_contour(data = mac_gr, aes(x = x, y = y, z = z), colour="#08306b")+
+  geom_point(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  labs(x="MDS1", y="MDS2", colour="Size")+
+  annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
+  theme_bw() %+replace% large
+```
+
+nMDS on size composition of meiofauna.
+
+## Per satation
+
+```{r}
+mac_sc2 <- acast(mac_s, Cruise+Habitat+Station+Depth~Class, value.var = "Wt", fun.aggregate=mean, na.rm=TRUE)
+mac_sc2[is.na(mac_sc2)] <- 0
+fr <- strsplit(row.names(mac_sc2), split="_") %>%ldply
+fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
+names(fr) <- c("Cruise", "Habitat", "Station", "Depth")
+fr$Depth <- as.numeric(fr$Depth)
+
+# Main effect
+f <- adonis(mac_sc2~Habitat+Cruise+Depth+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=fr, method="bray")
+kable(f$aov.tab)
+```
