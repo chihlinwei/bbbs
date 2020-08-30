@@ -1,5 +1,5 @@
 ---
-title: "Meiofauna and Macrofauna Size Spectrum"
+title: "Meiofauna and Macrofauna Biomass-Size Composition"
 author: "Chih-Lin Wei"
 date: "`r Sys.Date()`"
 output: 
@@ -28,7 +28,8 @@ library(vegan)
 library(RColorBrewer)
 library(metR)
 library(knitr)
-
+library(viridis)
+library(ggdendro)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -60,10 +61,35 @@ l2b <- function(x) 2^( floor(log2(min(x))) : ceiling(log2(max(x))) )
 bks <- l2b(c(mei_s$Wt, mac_s$Wt))
 ```
 
-Individual size of meiofauna and macrofauna were binned by log2 transformation of their biomass. The total biomass of each size bin and each sample was than calculated as size composition for further multivariate analysis. 
+# Correlation among environmental factors
+
+Temperature, salinity, dissolved oxygen concentration, fluorescence, and light transmission of the bottom water were measured by a conductivity-temperature-depth (CTD) recorder (Sea-Bird SBE 911) and other attached sensors. Surface sediment grain sizes (non-carbonate fraction) were measured by a laser diffraction particle size analyzer (Beckman Coulter LS13 320). Total organic carbon (TOC) and total nitrogen (TN) were analyzed with a Flash EA 1112 elemental analyzer. Porosity was estimated from wet weight and dry weight of sediment and assuming the dry sediment density of 2.65 g/cm3. Hourly bottom current velocity at each site was derived from a 3-D, hydrodynamic internal tide model from Chiou et al. (2011). Based on the internal tide model, we calculated the hourly mean velocity of bottom currents and the duration for which bottom current velocity exceeded 20 cm/s for 1 month preceding the sampling campaign to evaluate the possible disturbances of near-bottom currents on nematodes.
+
+```{r}
+# Normalized enivronmental data to mean zero and unit variance
+es <- as.data.frame(scale(env[, c(-1:-6, -11, -19:-21, -24)]))
+names(es)[13] <- "Spd"
+# Calculate absolute correlation coefficient
+co <- as.dist(matrix(1, nrow=14, ncol=14)-abs(cor(es, use="pairwise.complete.obs")))
+hc <- hclust(co, method="average")
+
+# Convert dendrogram to ggplot style
+dhc <- as.dendrogram(hc)
+ghc    <- dendro_data(dhc, type="rectangle") 
+
+ggdendrogram(hc, rotate = FALSE)+
+  geom_hline(yintercept=0.1, linetype=2, colour="red")
+```
+
+To avoid auto-correlations, redundant environmental variables (correlations > 0.9) were removed. For example, the bottom water temperature, density, and dissolved oxygen measured in this study were highly correlated. Therefore, the dissolved oxygen was not retained because the bottom dissolved oxygen concentration never dropped below the threshold of hypoxia (2 mg/L), presumably, due to turbulence mixing by internal tides. The density was not retained because it’s not an important factor known to affect infauna assemblages. Only the ecologically relevant variables, including bottom water temperature, salinity, light transmission, percent sand, silt and clay, sediment TOC and C/N ratio, porosity, mean bottom current velocity, and duration of bottom current velocity exceeding 20 cm/s were retained for the analysis. These variables were logarithm (base of 10) transformed, centered (subtracted from the mean), and normalized (divided by the standard deviation) prior to use in statistical analyses involving environmental variables.
 
 # Meiofauna size composition
+
+Individual size of meiofauna were binned by log2 transformation of their biomass. The total biomass of each size bin and each sample was than calculated as size composition for further multivariate analysis. 
+
 ## Per sample
+
+The biomass in each log2 size bin and sample (multicore tube) was square-root transformed, and converted to Bray-Curtis dissimilarity between samples. The same matrix was subjected to the agglomerative hierarchical clustering based on the group average (=UPGMA) method and Non-metric Multi-dimensional Scaling (nMDS). 
 
 ```{r, fig.width=8.1, fig.height=5}
 mei_s$Class <- cut(mei_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1)) 
@@ -74,26 +100,45 @@ fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
 names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Subcore", "Depth")
 fr$Depth <- as.numeric(fr$Depth)
 
+# Hierarchical Clustering based on square root transformed abundance data 
+# Agglomeration used group average (= UPGMA) method
+d <- vegdist(mei_sc^0.25)
+hc <- hclust(d, method="average")
+labs <- strsplit(hc$labels, split="_") %>% ldply
+hc$labels <- with(labs[,c(2,4)], paste(V2, V4, sep="_"))
+
+# Convert dendrogram to ggplot style
+dhc <- as.dendrogram(hc)
+ghc    <- dendro_data(dhc, type="rectangle") 
+
+# Merge env data to dendrogram label data frame
+ghc[["labels"]]   <- cbind(ghc[["labels"]], Habitat=labs$V3)
+
+ggdendrogram(hc, rotate = FALSE)+
+  geom_point(data=label(ghc), aes(x, y, fill=Habitat), size=4, pch=21, colour=gray(0, 0.2))+
+  scale_fill_viridis(discrete = TRUE)
 
 # nMDS
-mei_md <- metaMDS(mei_sc, distance = "bray")
+mei_md <- metaMDS(mei_sc^0.25, distance = "bray")
 stress <- paste("Stress = ", deparse(round(mei_md$stress,2)))
 
 # Weighted Averages Scores
-mei_wa <- wascores(mei_md$points, mei_sc) %>% as.data.frame
+mei_wa <- wascores(mei_md$points, mei_sc^0.25) %>% as.data.frame
 mei_wa$label <- row.names(mei_wa) %>% as.numeric
 
 ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
-  stat_ellipse(type="norm", geom="polygon", alpha=0.2, colour="transparent")+
+  stat_ellipse(type="norm", geom="polygon", alpha=0.2)+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mei_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
-  annotate("text", x=-2, y=1.5, label=stress, size=5) +
+  scale_color_viridis(discrete = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  annotate("text", x=-1, y=1, label=stress, size=5) +
   geom_label_repel(data=mei_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
 ```
 
-nMDS on size composition of meiofauna. Labels show the weighted averages scores for each size class and the text inside label indicates the log10 of the mid point of the size class.
+The nMDS shows biomass-size composition of meiofauna. Labels show the weighted averages scores for each log2 size bin (MDS score weighted by biomass in each size bin) and the text inside label indicates the log10 of the mid point of the size class. We can clearly see that canyon were dominated by the smaller size bins.
 
 ```{r}
 # ordisurf:
@@ -111,18 +156,122 @@ names(mei_gr2) <- c("x", "y", "z")
 
 ```{r, fig.width=8.1, fig.height=5}
 ggplot()+
-  stat_ellipse(data=cbind(mei_md$points, fr), geom = "polygon", aes(x=MDS1, y=MDS2, fill=Habitat), alpha = 0.2, type="norm")+
+  #stat_ellipse(data=cbind(mei_md$points, fr), geom = "polygon", aes(x=MDS1, y=MDS2, fill=Habitat), alpha = 0.2, type="norm")+
   stat_contour(data = mei_gr2, aes(x = x, y = y, z = z, colour=..level..), binwidth = 0.5)+
   geom_text_contour(data = mei_gr2, aes(x = x, y = y, z = z), colour="#08306b")+
   geom_point(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  scale_color_viridis(discrete = FALSE)+
+  scale_fill_viridis(discrete = TRUE)+
   labs(x="MDS1", y="MDS2", colour="Size")+
-  annotate("text", x=-2, y=1.5, label=stress, size=5)+
+  annotate("text", x=-1, y=0.5, label=stress, size=5)+
   theme_bw() %+replace% large
 ```
 
-nMDS on size composition of meiofauna. Contours show the weighted averages scores for each size class. The text on the contours and color scale indicate the log10 of the mid point of the size class.
+The nMDS shows biomass-size composition of meiofauna. Contours show the smoothed surface of the weighted averages scores for mid-point of each log2 size bin using Generalized Additive Model (GAM). The GAM results show that the interaction of MDS1 and MDS2 is significant smoother of the weighted average score. The text on the contours and color scale indicate the log10 of the mid point of the size class. We can clearly see an right-to-left declining gradient of meiofauna body size from the slope to canyon.
+
+### Distance based redundancy analysis
+
+Distance-based Redundancy Analysis (dbRDA) was used to model the biomass of log2-size bin in each sample using environmental variables.
+
+#### Full model
+
+```{r, fig.width=8.1, fig.height=5}
+keep <- match(with(fr, paste(Cruise, Station)), with(env, paste(Cruise, Station)))
+db <- dbrda(mei_sc^0.25~Spd+over20+CN+transmissometer+TOC+Porosity+Clay+Silt+Salinity+Temperature, distance = "bray", data=es[keep,])
+fit <- as.data.frame(db$CCA$biplot)
+sc <- min(abs(c(range(db$CCA$u[,1]), range(db$CCA$u[,1]))))
+fit <- fit*sc*1.8
+fit <- cbind(fit, label=c("Spd", "Over20", "CN", "Trans", "TOC", "Por", "Clay", "Silt", "Salin", "Temp"))
+
+ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))+
+  geom_point(size=5, pch=21, colour=gray(0, 0.2), alpha=0.8, aes(fill=Habitat))+
+  #geom_point(data=cbind(as.data.frame(db$CCA$u), env[keep,]) %>% subset(Cruise=="OR1_1114"), pch=21, size=4, fill="white", colour="black")+
+  stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
+  geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
+               arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
+  geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
+  scale_color_viridis(discrete = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  theme_bw() %+replace% large
+```
+
+```{r}
+su <- summary(db)
+cat("Constrained proportion = ", round(su$constr.chi/su$tot.chi*100, 1), "%", "\n",
+    "Unconstrained proportion = ", round(su$unconst.chi/su$tot.chi*100, 1), "%", "\n",
+    "dbRDA1 explains", round(su$cont$importance[2, 1]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 1]*100*su$constr.chi/su$tot.chi, 1), "% of total", "\n",
+    "dbRDA2 explains", round(su$cont$importance[2, 2]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 2]*100*su$constr.chi/su$tot.chi, 1), "% of total")
+```
+
+Based on distance-based redundancy analysis (dbRDA), the environmental factors explaining meiofauna biomass-size composition (adjusted R2 = 43.3%, p < 0.05). The canyon assemblages were characterized by high internal-tide energy, i.e., higher mean bottom current velocity (Spd), duration of bottom current velocity exceeding 20 cm/s (Over20). The slope assemblages were characterized by high food supply, i.e., higher total organic carbon contents (TOC) and low internal-tide energy, i.e., higher bottom water light transmission (trans).
+
+#### Model selection based on AIC
+
+Subset of environmental variables best explained the biomass-size composition were selected by AIC. The selected variables were projected as vectors on to the same nMDS ordination with the length of vectors indicating their correlations with the nMDS ordination scores and direction of vectors indicating the direction of increasing environmental values.
+
+```{r, fig.width=8.1, fig.height=5}
+ordistep(db, permutations=999)
+db <- dbrda(formula = mei_sc^0.25 ~ over20 + TOC + Porosity + Clay + Silt + Temperature, data = es[keep, ], distance = "bray")
+fit <- as.data.frame(db$CCA$biplot)
+sc <- min(abs(c(range(db$CCA$u[,1]), range(db$CCA$u[,1]))))
+fit <- fit*sc*1.8
+fit <- cbind(fit, label=c("Over20", "TOC", "Por", "Clay", "Silt", "Temp"))
+
+ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))+
+  geom_point(size=5, pch=21, colour=gray(0, 0.2), alpha=0.8, aes(fill=Habitat))+
+  #geom_point(data=cbind(as.data.frame(db$CCA$u), env[keep,]) %>% subset(Cruise=="OR1_1114"), pch=21, size=4, fill="white", colour="black")+
+  stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
+  geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
+               arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
+  geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
+  scale_color_viridis(discrete = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  theme_bw() %+replace% large
+```
+
+```{r}
+su <- summary(db)
+cat("Constrained proportion = ", round(su$constr.chi/su$tot.chi*100, 1), "%", "\n",
+    "Unconstrained proportion = ", round(su$unconst.chi/su$tot.chi*100, 1), "%", "\n",
+    "dbRDA1 explains", round(su$cont$importance[2, 1]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 1]*100*su$constr.chi/su$tot.chi, 1), "% of total", "\n",
+    "dbRDA2 explains", round(su$cont$importance[2, 2]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 2]*100*su$constr.chi/su$tot.chi, 1), "% of total")
+```
+
+Based on distance-based redundancy analysis (dbRDA) and AIC, the best subset of environmental factors explaining meiofauna biomass-size composition (adjusted R2 = 33.3%, p < 0.05) were variables related to:
+* Internal-tide energy, i.e., duration of bottom current velocity exceeding 20 cm/s (Over20)
+* Food supply, i.e., total organic carbon contents (TOC),
+* Water masses, i.e., temperature (Temp),
+* Sediment, i.e., porosity, silt, and clay.
+
+### Correlation between environmental variables and nMDS ordination 
+
+```{r, fig.width=8.1, fig.height=5}
+fit <- envfit(mei_md$points, es[keep, c("over20", "TOC", "Porosity", "Clay", "Silt", "Temperature")])
+lab <- data.frame(fit$vectors$arrows*1.2)
+lab$label <- c("Over20", "TOC", "Por", "Clay", "Silt", "Temp")
+
+ggplot(data=cbind(mei_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
+  geom_point(aes(fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  #geom_point(data=cbind(mei_md$points, enve) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
+  stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
+  annotate("text", x=-1, y=1, label=stress, size=5)+
+  geom_segment(data=lab, aes(x=0, y=0, xend=MDS1, yend=MDS2), size=1, arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
+  geom_label_repel(data=lab, aes(label=label), fill=viridis(3, 0.6)[2],
+             colour="white", size=5, label.padding = unit(0.2, "lines"))+
+  scale_fill_viridis(discrete = TRUE)+
+  scale_color_viridis(discrete = TRUE)+
+  theme_bw() %+replace% large
+```
+
+These variables are mapped onto the same nMDS plot using their correlations with the ordination axes, showing that the canyon assemblages were characterized by increasing duration of bottom current velocity exceeding 20 cm/s (Over20) and the slope assemblages by increasing total organic carbon contents (TOC).
 
 ## Per station
+
+Three-way cross permutation analysis of variance (PERMANOVA) was used to examine the effects of habitat, depth, and sampling time on the average meiofauna biomass-size composition per core. The number of permutation was set to 999. 
 
 ```{r}
 mei_sc2 <- acast(mei_s, Cruise+Habitat+Station+Depth~Class, value.var = "Wt", fun.aggregate=mean, na.rm=TRUE)
@@ -137,8 +286,15 @@ f <- adonis(mei_sc2~Habitat+Cruise+Depth+Habitat:Depth+Habitat:Cruise+Depth:Crui
 kable(f$aov.tab)
 ```
 
+Only significant habitat effect was detected by PERMANOVA. No statistical effect of cruise and depth.
+
 # Macrofauna size composition
+
+Individual size of macrofauna were binned by log2 transformation of their biomass. The total biomass of each size bin and each sample was than calculated as size composition for further multivariate analysis. 
+
 ## Per sample
+
+The biomass in each log2 size bin and sample (multicore tube) was square-root transformed, and converted to Bray-Curtis dissimilarity between samples. The same matrix was subjected to the agglomerative hierarchical clustering based on the group average (=UPGMA) method and Non-metric Multi-dimensional Scaling (nMDS). 
 
 ```{r, fig.width=8.1, fig.height=5}
 mac_s$Class <- cut(mac_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1))
@@ -148,26 +304,45 @@ fr <- strsplit(row.names(mac_sc), split="_") %>%ldply
 fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
 names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube")
 
+# Hierarchical Clustering based on square root transformed abundance data 
+# Agglomeration used group average (= UPGMA) method
+d <- vegdist(mac_sc^0.25)
+hc <- hclust(d, method="average")
+labs <- strsplit(hc$labels, split="_") %>% ldply
+hc$labels <- with(labs[,c(2,4)], paste(V2, V4, sep="_"))
+
+# Convert dendrogram to ggplot style
+dhc <- as.dendrogram(hc)
+ghc    <- dendro_data(dhc, type="rectangle") 
+
+# Merge env data to dendrogram label data frame
+ghc[["labels"]]   <- cbind(ghc[["labels"]], Habitat=labs$V3)
+
+ggdendrogram(hc, rotate = FALSE)+
+  geom_point(data=label(ghc), aes(x, y, fill=Habitat), size=4, pch=21, colour=gray(0, 0.2))+
+  scale_fill_viridis(discrete = TRUE)
+
 # nMDS
-mac_md <- metaMDS(mac_sc, distance = "bray")
+mac_md <- metaMDS(mac_sc^0.25, distance = "bray")
 stress <- paste("Stress = ", deparse(round(mac_md$stress,2)))
 
 # Weighted Averages Scores
-mac_wa <- wascores(mac_md$points, mac_sc, expand = TRUE) %>% as.data.frame
+mac_wa <- wascores(mac_md$points, mac_sc^0.25) %>% as.data.frame
 mac_wa$label <- row.names(mac_wa) %>% as.numeric
 
 
 ggplot(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
-  stat_ellipse(type="norm", geom="polygon", alpha=0.2, colour="transparent")+
+  stat_ellipse(type="norm", geom="polygon", alpha=0.2)+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
-  #geom_point(data=cbind(mac_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
+  scale_color_viridis(discrete = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
   annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
   geom_label_repel(data=mac_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
 ```
 
-nMDS on size composition of macrofauna. Labels show the weighted averages scores for each size class and the text inside label indicates the log10 of the mid point of the size class.
+The nMDS shows biomass-size composition of meiofauna. Labels show the weighted averages scores for each log2 size bin (MDS score weighted by biomass in each size bin) and the text inside label indicates the log10 of the mid point of the size class. We can clearly see that the weighted average mds scores (by size-bin biomass) concentrated on the slope. This indicates that biomass of all size bins were much higher on the slope than in the canyon. 
 
 ```{r}
 # ordisurf:
@@ -185,18 +360,122 @@ names(mac_gr2) <- c("x", "y", "z")
 
 ```{r, fig.width=8.1, fig.height=5}
 ggplot()+
-  stat_ellipse(data=cbind(mac_md$points, fr), geom = "polygon", aes(x=MDS1, y=MDS2, fill=Habitat), alpha = 0.2, type="norm")+
-  #stat_contour(data = mac_gr, aes(x = x, y = y, z = z, colour=..level..))+
+  #stat_ellipse(data=cbind(mac_md$points, fr), geom = "polygon", aes(x=MDS1, y=MDS2, fill=Habitat), alpha = 0.2, type="norm")+
+  stat_contour(data = mac_gr, aes(x = x, y = y, z = z, colour=..level..))+
   #geom_text_contour(data = mac_gr, aes(x = x, y = y, z = z), colour="#08306b")+
   geom_point(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  scale_color_viridis(discrete = FALSE)+
+  scale_fill_viridis(discrete = TRUE)+
   labs(x="MDS1", y="MDS2", colour="Size")+
-  annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
+  annotate("text", x=-1, y=1.2, label=stress, size=5) +
   theme_bw() %+replace% large
 ```
 
-nMDS on size composition of meiofauna.
+The nMDS shows biomass-size composition of macrofauna. Contours show the smoothed surface of the weighted averages scores for mid-point of each log2 size bin using Generalized Additive Model (GAM). The GAM results show that the interaction of MDS1 and MDS2 is significant smoother of the weighted average score. The text on the contours and color scale indicate the log10 of the mid point of the size class. We can clearly see an right-to-left declining gradient of macrofauna body size within the slope assemblages.
 
-## Per satation
+### Distance based redundancy analysis
+
+Distance-based Redundancy Analysis (dbRDA) was used to model the biomass of log2-size bin in each sample using environmental variables.
+
+#### Full model
+
+```{r, fig.width=8.1, fig.height=5}
+keep <- match(with(fr, paste(Cruise, Station)), with(env, paste(Cruise, Station)))
+db <- dbrda(mac_sc^0.25~Spd+over20+CN+transmissometer+TOC+Porosity+Clay+Silt+Salinity+Temperature, distance = "bray", data=es[keep,])
+fit <- as.data.frame(db$CCA$biplot)
+sc <- min(abs(c(range(db$CCA$u[,1]), range(db$CCA$u[,1]))))
+fit <- fit*sc*1.8
+fit <- cbind(fit, label=c("Spd", "Over20", "CN", "Trans", "TOC", "Por", "Clay", "Silt", "Salin", "Temp"))
+
+ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))+
+  geom_point(size=5, pch=21, colour=gray(0, 0.2), alpha=0.8, aes(fill=Habitat))+
+  #geom_point(data=cbind(as.data.frame(db$CCA$u), env[keep,]) %>% subset(Cruise=="OR1_1114"), pch=21, size=4, fill="white", colour="black")+
+  stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
+  geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
+               arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
+  geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
+  scale_color_viridis(discrete = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  theme_bw() %+replace% large
+```
+
+```{r}
+su <- summary(db)
+cat("Constrained proportion = ", round(su$constr.chi/su$tot.chi*100, 1), "%", "\n",
+    "Unconstrained proportion = ", round(su$unconst.chi/su$tot.chi*100, 1), "%", "\n",
+    "dbRDA1 explains", round(su$cont$importance[2, 1]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 1]*100*su$constr.chi/su$tot.chi, 1), "% of total", "\n",
+    "dbRDA2 explains", round(su$cont$importance[2, 2]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 2]*100*su$constr.chi/su$tot.chi, 1), "% of total")
+```
+
+Based on distance-based redundancy analysis (dbRDA), the environmental factors explaining macrofauna biomass-size composition (adjusted R2 = 29.9%, p < 0.05). The canyon assemblages were characterized by high internal-tide energy, i.e., higher mean bottom current velocity (Spd) and duration of bottom current velocity exceeding 20 cm/s (Over20). The slope assemblages were characterized by high food supply, i.e., higher total organic carbon contents (TOC) and low internal-tide energy, i.e., higher bottom water light transmission (trans).
+
+#### Model selection based on AIC
+
+Subset of environmental variables best explained the biomass-size composition were selected by AIC. The selected variables were projected as vectors on to the same nMDS ordination with the length of vectors indicating their correlations with the nMDS ordination scores and direction of vectors indicating the direction of increasing environmental values.
+
+```{r, fig.width=8.1, fig.height=5}
+ordistep(db, permutations=999)
+db <- dbrda(formula = mac_sc^0.25 ~ Spd + over20 + CN + transmissometer + Porosity + Silt + Temperature, data = es[keep, ], distance = "bray")
+fit <- as.data.frame(db$CCA$biplot)
+sc <- min(abs(c(range(db$CCA$u[,1]), range(db$CCA$u[,1]))))
+fit <- fit*sc*1.8
+fit <- cbind(fit, label=c("Spd", "Over20", "CN", "Trans", "Por", "Silt", "Temp"))
+
+ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))+
+  geom_point(size=5, pch=21, colour=gray(0, 0.2), alpha=0.8, aes(fill=Habitat))+
+  #geom_point(data=cbind(as.data.frame(db$CCA$u), env[keep,]) %>% subset(Cruise=="OR1_1114"), pch=21, size=4, fill="white", colour="black")+
+  stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
+  geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
+               arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
+  geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
+  scale_color_viridis(discrete = TRUE)+
+  scale_fill_viridis(discrete = TRUE)+
+  theme_bw() %+replace% large
+```
+
+```{r}
+su <- summary(db)
+cat("Constrained proportion = ", round(su$constr.chi/su$tot.chi*100, 1), "%", "\n",
+    "Unconstrained proportion = ", round(su$unconst.chi/su$tot.chi*100, 1), "%", "\n",
+    "dbRDA1 explains", round(su$cont$importance[2, 1]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 1]*100*su$constr.chi/su$tot.chi, 1), "% of total", "\n",
+    "dbRDA2 explains", round(su$cont$importance[2, 2]*100,1), "% of fit", 
+    "and", round(su$cont$importance[2, 2]*100*su$constr.chi/su$tot.chi, 1), "% of total")
+```
+
+Based on distance-based redundancy analysis (dbRDA) and AIC, the best subset of environmental factors explaining macrofauna biomass-size composition (adjusted R2 = 27.7%, p < 0.05) were variables related to:
+* Internal-tide energy, i.e., mean bottom current velocity (Spd), duration of bottom current velocity exceeding 20 cm/s (Over20), and bottom water light transmission (Trans)
+* Food supply, i.e., total organic carbon to total nitrogen ratio (CN),
+* Water masses, i.e., temperature (Temp),
+* Sediment, i.e., porosity and silt content.
+
+### Correlation between environmental variables and nMDS ordination 
+
+```{r, fig.width=8.1, fig.height=5}
+fit <- envfit(mac_md$points, es[keep, c("Spd", "over20", "CN", "transmissometer", "Porosity", "Silt", "Temperature")])
+lab <- data.frame(fit$vectors$arrows*1.2)
+lab$label <- c("Spd", "Over20", "CN", "Trans", "Por", "Silt", "Temp")
+
+ggplot(data=cbind(mac_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
+  geom_point(aes(fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  #geom_point(data=cbind(mei_md$points, enve) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
+  stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
+  annotate("text", x=-1.2, y=1.2, label=stress, size=5)+
+  geom_segment(data=lab, aes(x=0, y=0, xend=MDS1, yend=MDS2), size=1, arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
+  geom_label_repel(data=lab, aes(label=label), fill=viridis(3, 0.6)[2],
+             colour="white", size=5, label.padding = unit(0.2, "lines"))+
+  scale_fill_viridis(discrete = TRUE)+
+  scale_color_viridis(discrete = TRUE)+
+  theme_bw() %+replace% large
+```
+
+These variables are mapped onto the same nMDS plot using their correlations with the ordination axes, showing that the canyon assemblages were characterized by increasing mean bottom current velocity (Spd) and duration of bottom current velocity exceeding 20 cm/s (Over20) and the slope assemblages by increasing total organic carbon to total nitrogen ratio (CN), bottom water light transmission (Trans), sediment porosity (Por) and silt contents (Silt).
+
+## Per station
+
+Three-way cross permutation analysis of variance (PERMANOVA) was used to examine the effects of habitat, depth, and sampling time on the average macrofauna biomass-size composition per station. The number of permutation was set to 999. 
 
 ```{r}
 mac_sc2 <- acast(mac_s, Cruise+Habitat+Station+Depth~Class, value.var = "Wt", fun.aggregate=mean, na.rm=TRUE)
@@ -210,3 +489,5 @@ fr$Depth <- as.numeric(fr$Depth)
 f <- adonis(mac_sc2~Habitat+Cruise+Depth+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=fr, method="bray")
 kable(f$aov.tab)
 ```
+
+Only significant habitat effect was detected by PERMANOVA. No statistical effect of cruise and depth.

@@ -325,8 +325,7 @@ vp <- (sed$WW-sed$DW)/(dens/1000)
 vb <- sed$DW/2.65
 sed$Porosity <- vp/(vp+vb)
 
-env <- cbind(loc, sed[,-1:-7], tc)
-
+env <- cbind(loc, ctd[,-1:-5], sed[,-1:-7], tc)
 ```
 
 
