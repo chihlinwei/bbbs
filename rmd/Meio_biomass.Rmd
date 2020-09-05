@@ -25,6 +25,7 @@ library(readxl)
 library(swtmap)
 library(maptools)
 library(knitr)
+library(nlme)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -54,6 +55,7 @@ jet.colors <-colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
 ```{r, fig.width=7, fig.height=5}
 # Sorting data
 abun   <- read_excel("../excel/GPSC_meio_sorting_2016.08.18.xlsx", sheet=2)
+abun <- subset(abun, Cruise!="OR1_1128" & Cruise!="OR1_1132")
 abun <- summaryBy(Abundance~Cruise+Station+Station+Deployment+Tube+Subcore, data=as.data.frame(abun), FUN=sum, keep.names=T)
 abun$Density <- abun$Abundance/(pi*(2.5/2)^2/10000)
 dat.mean <- summaryBy(Density~Cruise+Station, data=abun, FUN=c(mean, sd, length), keep.names = TRUE)
@@ -84,6 +86,79 @@ dat.mean$sd <- round(dat.mean$sd, 1)
 dat.mean$se <- round(dat.mean$se, 1)
 kable(dat.mean, align="c")
 ```
+
+### Linear regression with depth
+
+```{r}
+splitBy(~Habitat, dat.mean) %>% lapply(FUN=function(x)lm(log10(Density)~Depth, data=x) %>% summary)
+```
+
+No statistical relationship between meiofauna density and water depth.
+
+### Generalized Least Squares (GLS) modeling
+
+Meiofauna density of each subsample were averaged by core (i.e., average of three subsamples) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth strata, and sampling time (Cruise 1114 vs. 1126) on the mean meiofauna density.
+
+#### Main test
+
+```{r}
+f <- gls(log10(Density) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=dat.mean, method = "REML")
+kable(summary(f)$tTable)
+```
+
+No statistical effect except for the interaction between habitat and cruise.
+
+```{r, fig.width=12, fig.height=12}
+# Function to plot dianotics plot
+dianostic_plot <- 
+  function(f, y){
+    # standardized residuals versus fitted values
+    a1 <- plot(f, resid(., type = "p") ~ fitted(.) | Habitat, abline = 0)
+    a2 <- plot(f, resid(., type = "p") ~ fitted(.) | Cruise, abline = 0)
+    a3 <- plot(f, resid(., type = "p") ~ fitted(.), abline = 0)
+    # box-plots of residuals
+    b1<-plot(f, Habitat ~ resid(.))
+    b2 <- plot(f, Cruise ~ resid(.))
+    # observed versus fitted values
+    c1<-plot(f, paste(paste(y, "fitted(.)", sep="~"), "Habitat", sep="|") %>% formula, abline = c(0,1))
+    c2<-plot(f, paste(paste(y, "fitted(.)", sep="~"), "Cruise", sep="|") %>% formula, abline = c(0,1))
+    c3<-plot(f, paste(y, "fitted(.)", sep="~") %>% formula, abline = c(0,1))
+    # QQ plot
+    d1<-qqnorm(f, ~ resid(., type = "p") | Habitat, abline = c(0,1))
+    d2<-qqnorm(f, ~ resid(., type = "p") | Cruise, abline = c(0,1))
+    d3<-qqnorm(f, ~ resid(., type = "p"), abline = c(0,1))
+    
+    print(a1, split=c(1,1,3,4), more=TRUE)
+    print(a2, split=c(2,1,3,4), more=TRUE)
+    print(a3, split=c(3,1,3,4), more=TRUE)
+    print(b1, split=c(1,2,3,4), more=TRUE)
+    print(b2, split=c(2,2,3,4), more=TRUE)
+    #
+    print(c1, split=c(1,3,3,4), more=TRUE)
+    print(c2, split=c(2,3,3,4), more=TRUE)
+    print(c3, split=c(3,3,3,4), more=TRUE)
+    print(d1, split=c(1,4,3,4), more=TRUE)
+    print(d2, split=c(2,4,3,4), more=TRUE)
+    print(d3, split=c(3,4,3,4))
+    }
+
+dianostic_plot(f, y = "log10(Density)")
+```
+
+#### Pairwise tests
+
+```{r}
+# In canyon
+f <- gls(log10(Density) ~ Depth+Cruise+Depth:Cruise, data=subset(dat.mean, Habitat == "Canyon"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# On slope
+f <- gls(log10(Density) ~ Depth+Cruise+Depth:Cruise, data=subset(dat.mean, Habitat == "Slope"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+```
+
+Significant cruise effect in the canyon and on the slope
 
 ## Per station
 
@@ -145,6 +220,31 @@ out$Biomass <- round(out$Biomass, 0)
 out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
 kable(out, align="c")
+```
+
+### Linear regression with depth
+
+```{r}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x) %>% summary)
+```
+
+No statistical relationship between meiofauna biomass and water depth.
+
+### Generalized Least Squares (GLS) modeling
+
+Meiofauna biomass of each subsample were averaged by core (i.e., average of three subsamples) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth strata, and sampling time (Cruise 1114 vs. 1126) on the mean meiofauna biomass.
+
+#### Main test
+
+```{r}
+f <- gls(log10(Biomass) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
+kable(summary(f)$tTable)
+```
+
+Only habitat has marginal effect.
+
+```{r, fig.width=12, fig.height=12}
+dianostic_plot(f, y = "log10(Biomass)")
 ```
 
 ## Per station

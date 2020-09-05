@@ -116,7 +116,8 @@ ghc[["labels"]]   <- cbind(ghc[["labels"]], Habitat=labs$V3)
 
 ggdendrogram(hc, rotate = FALSE)+
   geom_point(data=label(ghc), aes(x, y, fill=Habitat), size=4, pch=21, colour=gray(0, 0.2))+
-  scale_fill_viridis(discrete = TRUE)
+  #scale_fill_viridis(discrete = TRUE)
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))
 
 # nMDS
 mei_md <- metaMDS(mei_sc^0.25, distance = "bray")
@@ -130,8 +131,10 @@ ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=H
   stat_ellipse(type="norm", geom="polygon", alpha=0.2)+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mei_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
-  scale_color_viridis(discrete = TRUE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   annotate("text", x=-1, y=1, label=stress, size=5) +
   geom_label_repel(data=mei_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
@@ -161,7 +164,8 @@ ggplot()+
   geom_text_contour(data = mei_gr2, aes(x = x, y = y, z = z), colour="#08306b")+
   geom_point(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   scale_color_viridis(discrete = FALSE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   labs(x="MDS1", y="MDS2", colour="Size")+
   annotate("text", x=-1, y=0.5, label=stress, size=5)+
   theme_bw() %+replace% large
@@ -190,8 +194,10 @@ ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))
   geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
                arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
-  scale_color_viridis(discrete = TRUE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   theme_bw() %+replace% large
 ```
 
@@ -226,8 +232,10 @@ ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))
   geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
                arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
-  scale_color_viridis(discrete = TRUE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   theme_bw() %+replace% large
 ```
 
@@ -262,8 +270,10 @@ ggplot(data=cbind(mei_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
   geom_segment(data=lab, aes(x=0, y=0, xend=MDS1, yend=MDS2), size=1, arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=lab, aes(label=label), fill=viridis(3, 0.6)[2],
              colour="white", size=5, label.padding = unit(0.2, "lines"))+
-  scale_fill_viridis(discrete = TRUE)+
-  scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   theme_bw() %+replace% large
 ```
 
@@ -320,7 +330,8 @@ ghc[["labels"]]   <- cbind(ghc[["labels"]], Habitat=labs$V3)
 
 ggdendrogram(hc, rotate = FALSE)+
   geom_point(data=label(ghc), aes(x, y, fill=Habitat), size=4, pch=21, colour=gray(0, 0.2))+
-  scale_fill_viridis(discrete = TRUE)
+  #scale_fill_viridis(discrete = TRUE)
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))
 
 # nMDS
 mac_md <- metaMDS(mac_sc^0.25, distance = "bray")
@@ -334,15 +345,17 @@ mac_wa$label <- row.names(mac_wa) %>% as.numeric
 ggplot(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
   stat_ellipse(type="norm", geom="polygon", alpha=0.2)+
   geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
-  scale_color_viridis(discrete = TRUE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
   geom_label_repel(data=mac_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
 ```
 
-The nMDS shows biomass-size composition of meiofauna. Labels show the weighted averages scores for each log2 size bin (MDS score weighted by biomass in each size bin) and the text inside label indicates the log10 of the mid point of the size class. We can clearly see that the weighted average mds scores (by size-bin biomass) concentrated on the slope. This indicates that biomass of all size bins were much higher on the slope than in the canyon. 
+The nMDS shows biomass-size composition of macrofauna. Labels show the weighted averages scores for each log2 size bin (MDS score weighted by biomass in each size bin) and the text inside label indicates the log10 of the mid point of the size class. We can clearly see that the weighted average mds scores (by size-bin biomass) concentrated on the slope. This indicates that biomass of all size bins were much higher on the slope than in the canyon. 
 
 ```{r}
 # ordisurf:
@@ -365,7 +378,8 @@ ggplot()+
   #geom_text_contour(data = mac_gr, aes(x = x, y = y, z = z), colour="#08306b")+
   geom_point(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
   scale_color_viridis(discrete = FALSE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   labs(x="MDS1", y="MDS2", colour="Size")+
   annotate("text", x=-1, y=1.2, label=stress, size=5) +
   theme_bw() %+replace% large
@@ -394,8 +408,10 @@ ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))
   geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
                arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
-  scale_color_viridis(discrete = TRUE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   theme_bw() %+replace% large
 ```
 
@@ -430,8 +446,10 @@ ggplot(data=cbind(as.data.frame(db$CCA$u), env[keep,]), aes(x=dbRDA1, y=dbRDA2))
   geom_segment(data=fit, aes(x=0, y=0, xend=dbRDA1, yend=dbRDA2), size=1,
                arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=fit, aes(x=dbRDA1, y=dbRDA2, label=label), fill=viridis(3, 0.6)[2], colour="white", size=4, fontface = "bold")+
-  scale_color_viridis(discrete = TRUE)+
-  scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   theme_bw() %+replace% large
 ```
 
@@ -466,8 +484,10 @@ ggplot(data=cbind(mac_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
   geom_segment(data=lab, aes(x=0, y=0, xend=MDS1, yend=MDS2), size=1, arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=lab, aes(label=label), fill=viridis(3, 0.6)[2],
              colour="white", size=5, label.padding = unit(0.2, "lines"))+
-  scale_fill_viridis(discrete = TRUE)+
-  scale_color_viridis(discrete = TRUE)+
+  #scale_fill_viridis(discrete = TRUE)+
+  #scale_color_viridis(discrete = TRUE)+
+  scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   theme_bw() %+replace% large
 ```
 
