@@ -1,0 +1,20 @@
+Taxon,ConFac_j2mgwm,Mollusca,Annelida,Crustacea,Echinodermata,Insecta,Infauna,Sessile,Crawler,FacultativeSwimmer,Herbivore,Omnivore,Carnivore,Lake,River,Marine,Subtidal,Exploited
+Nematoda,4.109439674,0,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Harpacticoida,16.31755,0,0,1,0,0,1,0,1,0,1,0,0,0,0,1,1,0
+Isopoda,2.000737038,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Polychaeta,3.523001074,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Cumacea,3.0115,0,0,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0
+Ostracoda,2.074273254,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Calanoida,2.073878114,0,0,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0
+Bivalvia,3.030785839,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Tanaidacea,,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Aplacophora,,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Amphipoda,8.19,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Scaphopoda,5.76,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Sipuncula,2.488239474,0,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0
+Ophiuroidea,1.87835254,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,0
+Asteroidea,3.764961986,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,0
+Nemertea,5.104,0,0,0,0,0,1,0,1,0,0,0,1,0,0,1,1,0
+,,,,,,,,,,,,,,,,,,
+Harpacticoida only shows J/mgDM of 1 specimen.,,,,,,,,,,,,,,,,,,
+Tanaidacea and Aplacophora: no data.,,,,,,,,,,,,,,,,,,

@@ -1,7 +1,7 @@
 ---
 title: "Macrofauna P/B ratio"
 author: "Chih-Lin Wei"
-date: "8/12/2020"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -40,23 +40,56 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 ```{r}
 dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
 dat.sum <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=dat, FUN=c(sum, length))
-names(dat.sum)[-1:-6] <- c("Wt", "Abundance")
+names(dat.sum)[-1:-6] <- c("Wt", "Count")
+dat.sum$Sample.area <- mac$Area[match(with(dat.sum, paste(Cruise, Station)), with(mac, paste(Cruise, Station)))]
 
 # Convert the numbers of polychaete specimen (with head) to abundance
 pols <- subset(mac, Taxon=="Polychaeta" & (Condition=="FH" | Condition=="C" | Condition=="FHT"))
-pola <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Abundance", keep.names = T)
+pola <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Count", keep.names = T)
 keep <- match(with(pola, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
-dat.sum$Abundance[keep] <- pola$Abundance
+dat.sum$Count[keep] <- pola$Count
 
 # Convert the numbers of complete ophiroid specimens to abundance
 ophs <- subset(mac, Taxon=="Ophiuroidea" & Condition=="C")
-opha <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=ophs, FUN=length, var.names="Abundance", keep.names = T)
+opha <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=ophs, FUN=length, var.names="Count", keep.names = T)
 keep <- match(with(opha, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
-dat.sum$Abundance[keep] <- opha$Abundance
+dat.sum$Count[keep] <- opha$Count
+
+# 
+tr <- read.csv("../excel/trait_wei.csv")
+dat.sum <- cbind(dat.sum, tr[match(dat.sum$Taxon, tr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
+dat.sum$Bodymass <- dat.sum$Wt*dat.sum$ConFac_j2mgwm/dat.sum$Count
+dat.sum <- cbind(dat.sum, env[match(with(dat.sum, paste(Cruise, Station)), with(env, paste(Cruise, Station))), c("Temperature", "Depth")])
+dat.sum <- cbind(dat.sum, tr[match(dat.sum$Taxon, tr$Taxon), c(-1:-3, -21)])
 
 
-out <- cbind(Taxon=unique(c(mei$Taxon, mac$Taxon)), ConFac_j2mgwm=NA, Mollusca=NA, Annelida=NA, Crustacea=NA, Echinodermata=NA, Insecta=NA, Infauna=NA, Sessile=NA, Crawler=NA, FacultativeSwimmer=NA, Herbivore=NA, Omnivore=NA, Carnivore=NA, Lake=NA, River=NA, Marine=NA, Subtidal=NA, Exploited=NA)
-write.csv(out, na="", row.names=FALSE, file="../excel/trait.csv")
-write.csv(BenthProdExampleData, na="", row.names=FALSE, file="../excel/BenthProdExampleData.csv")
+
+
+individualPB<-BenthicPB(dat.sum)
+PBresults<-cbind(dat.sum,individualPB)
+
+# annual secondary production in Joule per species and sample
+productionJ<-PBresults$annual.PtoB*PBresults$Bodymass*PBresults$Count
+
+# conversion from Joule to gram carbon
+productionC<-productionJ/(PBresults$ConFac_j2mgc*1000)
+biomassC<-PBresults$Bodymass*PBresults$Count/(PBresults$ConFac_j2mgc*1000)
+
+# summation over all species per sample and conversion to squaremeter
+ProductionGramCperSqm<-aggregate(productionC/PBresults$Sample.area, by=list(SampleID=PBresults$SampleID), FUN=sum)
+BiomassGramCperSqm<-aggregate(biomassC/PBresults$Sample.area, by=list(SampleID=PBresults$SampleID), FUN=sum)
+
+# annual carbon productivity
+summarized.results<-cbind(BiomassGramCperSqm$SampleID,BiomassGramCperSqm$x, ProductionGramCperSqm$x, ProductionGramCperSqm$x/BiomassGramCperSqm$x)
+colnames(summarized.results)=c("SampleID", "Biomass.gC/m^2", "Production.gC/m^2", "Carbon.Productivity")
+summarized.results
+
+
+
+
+
+#out <- cbind(Taxon=unique(c(mei$Taxon, mac$Taxon)), ConFac_j2mgwm=NA, Mollusca=NA, Annelida=NA, Crustacea=NA, Echinodermata=NA, Insecta=NA, Infauna=NA, Sessile=NA, Crawler=NA, FacultativeSwimmer=NA, Herbivore=NA, Omnivore=NA, Carnivore=NA, Lake=NA, River=NA, Marine=NA, Subtidal=NA, Exploited=NA)
+#write.csv(out, na="", row.names=FALSE, file="../excel/trait.csv")
+#write.csv(BenthProdExampleData, na="", row.names=FALSE, file="../excel/BenthProdExampleData.csv")
 ```
 

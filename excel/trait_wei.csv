@@ -1,0 +1,17 @@
+Taxon,ConFac_j2mgwm,ConFac_j2mgc,Mollusca,Annelida,Crustacea,Echinodermata,Insecta,Infauna,Sessile,Crawler,FacultativeSwimmer,Herbivore,Omnivore,Carnivore,Lake,River,Marine,Subtidal,Exploited,Note
+Nematoda,4.109439674,48.34606622,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,Assign to Annelida so calculation can work
+Harpacticoida,16.31755,37.91287558,0,0,1,0,0,1,0,1,0,1,0,0,0,0,1,1,0,
+Isopoda,4.175161011,52.40124851,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0,
+Polychaeta,1.891648767,38.79187231,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,
+Cumacea,2.369378542,45.7,0,0,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04
+Ostracoda,0.910123488,29.31254328,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0,
+Calanoida,3.331958468,43.10054622,0,0,1,0,0,1,0,0,1,0,1,0,0,0,1,1,0,
+Bivalvia,3.320108245,45.7,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04
+Tanaidacea,3.329376265,43.59442843,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0,"use average of isopods, cumaceans, and amphipods"
+Aplacophora,3.320108245,45.7,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04
+Amphipoda,3.443589243,34.78760835,0,0,1,0,0,1,0,1,0,0,1,0,0,0,1,1,0,3.32 use bivalves
+Scaphopoda,0.92746296,45.7,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04
+Sipuncula,2.488239474,45.7,0,1,0,0,0,1,0,1,0,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04; assign to Annelida so calculation can work
+Ophiuroidea,1.87835254,45.7,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04
+Asteroidea,2.735308985,45.7,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,0,45.7 use general value from coversion 04
+Nemertea,3.88111001,59.11031915,0,1,0,0,0,1,0,1,0,0,0,1,0,0,1,1,0,Assign to Annelida so calculation can work

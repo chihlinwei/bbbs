@@ -238,8 +238,8 @@ dat <- mac
 
 dat <- subset(dat, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
 
-dat.sum <- summaryBy(Size+Area+Longitude+Latitude+Depth~Habitat+Cruise+Station+Deployment+Tube, data=dat, FUN=c(sum, mean))
-dat.sum$Biomass <- dat.sum$Size.sum/dat.sum$Area.mean
+dat.sum <- summaryBy(Wt+Area+Longitude+Latitude+Depth~Habitat+Cruise+Station+Deployment+Tube, data=dat, FUN=c(sum, mean))
+dat.sum$Biomass <- dat.sum$Wt.sum/dat.sum$Area.mean
 
 dat.mean <- summaryBy(Biomass+Longitude.mean+Latitude.mean+Depth.mean~Habitat+Cruise+Station, data=dat.sum, FUN=c(mean, sd, length))
 dat.mean$Biomass.se <- dat.mean$Biomass.sd/dat.mean$Biomass.length^0.5
