@@ -55,7 +55,9 @@ opha <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=ophs, FU
 keep <- match(with(opha, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
 dat.sum$Count[keep] <- opha$Count
 
-# 
+# Remove Cyclopoida and Calanoida
+dat.sum <- subset(dat.sum, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
+
 tr <- read.csv("../excel/trait_wei.csv")
 dat.sum <- cbind(dat.sum, tr[match(dat.sum$Taxon, tr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
 dat.sum$Bodymass <- dat.sum$Wt*dat.sum$ConFac_j2mgwm/dat.sum$Count
@@ -70,17 +72,21 @@ PBresults<-cbind(dat.sum,individualPB)
 PBresults$productionJ<-PBresults$annual.PtoB*PBresults$Bodymass*PBresults$Count/PBresults$Sample.area
 
 # conversion from Joule to gram carbon per square meter
-PBresults$productionC<-productionJ/(PBresults$ConFac_j2mgc*1000)/PBresults$Sample.area
-PBresults$biomassC<-PBresults$Bodymass*PBresults$Count/(PBresults$ConFac_j2mgc*1000)/PBresults$Sample.area
+PBresults$productionC<-PBresults$productionJ/(PBresults$ConFac_j2mgc*1000)/PBresults$Sample.area
 
 # Summation by tube
 p2b <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = mean, keep.names = TRUE)
-pd <- summaryBy(productionJ+productionC+biomassC~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
+pd <- summaryBy(productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
 pd <- cbind(p2b, pd[, -1:-5])
+
+# Remove outlier samples with only 1 individuals
+bad <- with(pd, Count <=1 | (Cruise=="OR1_1102" & Station == "GS4") )
+dat <- subset(dat, !bad)
+
 
 se <- function(x) sd(x)/length(x)^0.5
 
-out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionJ+productionC+biomassC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
+out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
 #out <- cbind(Taxon=unique(c(mei$Taxon, mac$Taxon)), ConFac_j2mgwm=NA, Mollusca=NA, Annelida=NA, Crustacea=NA, Echinodermata=NA, Insecta=NA, Infauna=NA, Sessile=NA, Crawler=NA, FacultativeSwimmer=NA, Herbivore=NA, Omnivore=NA, Carnivore=NA, Lake=NA, River=NA, Marine=NA, Subtidal=NA, Exploited=NA)
 #write.csv(out, na="", row.names=FALSE, file="../excel/trait.csv")
@@ -89,8 +95,8 @@ out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionJ+productionC+bioma
 
 ```{r, fig.height=5, fig.width=7}
 ggplot(data=out, 
-       aes(x=Depth, y=log10(biomassC.mean), 
-           ymin=log10(biomassC.mean-biomassC.se), ymax=log10(biomassC.mean+biomassC.se),
+       aes(x=Depth.mean, y=log10(productionC.mean), 
+           ymin=log10(productionC.mean-productionC.se), ymax=log10(productionC.mean+productionC.se),
            shape=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
   stat_smooth(method="lm", formula=y~x)+
@@ -99,7 +105,7 @@ ggplot(data=out,
   #scale_fill_manual(values=c("black","gray"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
+  labs(x="Depth (m)", y=expression(Log[10]~production~(mgC~m^-2~yr^-1)))+
   #scale_y_log10()+
   theme_bw() %+replace% large #%+replace% dark
 ```
