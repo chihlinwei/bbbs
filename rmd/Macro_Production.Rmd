@@ -63,33 +63,44 @@ dat.sum <- cbind(dat.sum, env[match(with(dat.sum, paste(Cruise, Station)), with(
 dat.sum <- cbind(dat.sum, tr[match(dat.sum$Taxon, tr$Taxon), c(-1:-3, -21)])
 
 
-
-
 individualPB<-BenthicPB(dat.sum)
 PBresults<-cbind(dat.sum,individualPB)
 
-# annual secondary production in Joule per species and sample
-productionJ<-PBresults$annual.PtoB*PBresults$Bodymass*PBresults$Count
+# annual secondary production in Joule per species and sample per square meter
+PBresults$productionJ<-PBresults$annual.PtoB*PBresults$Bodymass*PBresults$Count/PBresults$Sample.area
 
-# conversion from Joule to gram carbon
-productionC<-productionJ/(PBresults$ConFac_j2mgc*1000)
-biomassC<-PBresults$Bodymass*PBresults$Count/(PBresults$ConFac_j2mgc*1000)
+# conversion from Joule to gram carbon per square meter
+PBresults$productionC<-productionJ/(PBresults$ConFac_j2mgc*1000)/PBresults$Sample.area
+PBresults$biomassC<-PBresults$Bodymass*PBresults$Count/(PBresults$ConFac_j2mgc*1000)/PBresults$Sample.area
 
-# summation over all species per sample and conversion to squaremeter
-ProductionGramCperSqm<-aggregate(productionC/PBresults$Sample.area, by=list(SampleID=PBresults$SampleID), FUN=sum)
-BiomassGramCperSqm<-aggregate(biomassC/PBresults$Sample.area, by=list(SampleID=PBresults$SampleID), FUN=sum)
+# Summation by tube
+p2b <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = mean, keep.names = TRUE)
+pd <- summaryBy(productionJ+productionC+biomassC~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
+pd <- cbind(p2b, pd[, -1:-5])
 
-# annual carbon productivity
-summarized.results<-cbind(BiomassGramCperSqm$SampleID,BiomassGramCperSqm$x, ProductionGramCperSqm$x, ProductionGramCperSqm$x/BiomassGramCperSqm$x)
-colnames(summarized.results)=c("SampleID", "Biomass.gC/m^2", "Production.gC/m^2", "Carbon.Productivity")
-summarized.results
+se <- function(x) sd(x)/length(x)^0.5
 
-
-
-
+out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionJ+productionC+biomassC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
 #out <- cbind(Taxon=unique(c(mei$Taxon, mac$Taxon)), ConFac_j2mgwm=NA, Mollusca=NA, Annelida=NA, Crustacea=NA, Echinodermata=NA, Insecta=NA, Infauna=NA, Sessile=NA, Crawler=NA, FacultativeSwimmer=NA, Herbivore=NA, Omnivore=NA, Carnivore=NA, Lake=NA, River=NA, Marine=NA, Subtidal=NA, Exploited=NA)
 #write.csv(out, na="", row.names=FALSE, file="../excel/trait.csv")
 #write.csv(BenthProdExampleData, na="", row.names=FALSE, file="../excel/BenthProdExampleData.csv")
+```
+
+```{r, fig.height=5, fig.width=7}
+ggplot(data=out, 
+       aes(x=Depth, y=log10(biomassC.mean), 
+           ymin=log10(biomassC.mean-biomassC.se), ymax=log10(biomassC.mean+biomassC.se),
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
+  #scale_fill_manual(values=c("black","gray"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
+  #scale_y_log10()+
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
