@@ -16,6 +16,7 @@ library(ggplot2)
 library(plyr)
 library(doBy)
 library(readxl)
+library(knitr)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -36,6 +37,8 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
         panel.grid.major = element_line(colour = 'gray30'),
         panel.grid.minor = element_line(colour = 'gray20'))
 ```
+
+# Data preparation
 
 ```{r}
 dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
@@ -58,39 +61,73 @@ dat.sum$Count[keep] <- opha$Count
 # Remove Cyclopoida and Calanoida
 dat.sum <- subset(dat.sum, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
 
-tr <- read.csv("../excel/trait_wei.csv")
-dat.sum <- cbind(dat.sum, tr[match(dat.sum$Taxon, tr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
-dat.sum$Bodymass <- dat.sum$Wt*dat.sum$ConFac_j2mgwm/dat.sum$Count
+# Match to marofauna production parameters
+dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
+dat.sum$Bodymass <- with(dat.sum, Wt*ConFac_j2mgwm/Count)
 dat.sum <- cbind(dat.sum, env[match(with(dat.sum, paste(Cruise, Station)), with(env, paste(Cruise, Station))), c("Temperature", "Depth")])
-dat.sum <- cbind(dat.sum, tr[match(dat.sum$Taxon, tr$Taxon), c(-1:-3, -21)])
+dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c(-1:-3, -21)])
 
-
+# Calculate P/B ratio
 individualPB<-BenthicPB(dat.sum)
 PBresults<-cbind(dat.sum,individualPB)
 
+# annual secondary production in mulligram WM per species and sample per square meter
+PBresults$productionWt <- with(PBresults, annual.PtoB*Wt/Sample.area)
+
 # annual secondary production in Joule per species and sample per square meter
-PBresults$productionJ<-PBresults$annual.PtoB*PBresults$Bodymass*PBresults$Count/PBresults$Sample.area
+PBresults$productionJ <- with(PBresults, productionWt*ConFac_j2mgwm)
 
-# conversion from Joule to gram carbon per square meter
-PBresults$productionC<-PBresults$productionJ/(PBresults$ConFac_j2mgc*1000)/PBresults$Sample.area
+# conversion from Joule to milligram carbon per square meter
+PBresults$productionC <- with(PBresults, productionJ/ConFac_j2mgc)
 
-# Summation by tube
+# Average P/B ratio by tube
 p2b <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = mean, keep.names = TRUE)
-pd <- summaryBy(productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
+
+# Summation production by tube
+pd <- summaryBy(productionWt+productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
 pd <- cbind(p2b, pd[, -1:-5])
 
 # Remove outlier samples with only 1 individuals
 bad <- with(pd, Count <=1 | (Cruise=="OR1_1102" & Station == "GS4") )
 dat <- subset(dat, !bad)
 
-
 se <- function(x) sd(x)/length(x)^0.5
+out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionWt+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
-out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "lowerCI.mean", "upperCI.mean", "productionWt.mean", "productionWt.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
 
-#out <- cbind(Taxon=unique(c(mei$Taxon, mac$Taxon)), ConFac_j2mgwm=NA, Mollusca=NA, Annelida=NA, Crustacea=NA, Echinodermata=NA, Insecta=NA, Infauna=NA, Sessile=NA, Crawler=NA, FacultativeSwimmer=NA, Herbivore=NA, Omnivore=NA, Carnivore=NA, Lake=NA, River=NA, Marine=NA, Subtidal=NA, Exploited=NA)
-#write.csv(out, na="", row.names=FALSE, file="../excel/trait.csv")
-#write.csv(BenthProdExampleData, na="", row.names=FALSE, file="../excel/BenthProdExampleData.csv")
+kable(out)
+```
+
+
+```{r, fig.height=5, fig.width=7}
+ggplot(data=out, 
+       aes(x=Depth.mean, y=annual.PtoB.mean, 
+           #ymin=annual.PtoB.mean-lowerCI.mean, ymax=annual.PtoB.mean+upperCI.mean,
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  #geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(P/B~Ratio))+
+  theme_bw() %+replace% large #%+replace% dark
+```
+
+```{r, fig.height=5, fig.width=7}
+ggplot(data=out, 
+       aes(x=Depth.mean, y=log10(productionWt.mean), 
+           ymin=log10(productionWt.mean-productionWt.se), ymax=log10(productionWt.mean+productionWt.se),
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.height=5, fig.width=7}
@@ -102,11 +139,23 @@ ggplot(data=out,
   stat_smooth(method="lm", formula=y~x)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
-  #scale_fill_manual(values=c("black","gray"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(mgC~m^-2~yr^-1)))+
-  #scale_y_log10()+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
+```{r, fig.height=5, fig.width=7}
+ggplot(data=out, 
+       aes(x=Depth.mean, y=log10(productionJ.mean), 
+           ymin=log10(productionJ.mean-productionJ.se), ymax=log10(productionJ.mean+productionJ.se),
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  stat_smooth(method="lm", formula=y~x)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("black","gray30"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~production~(J~m^-2~yr^-1)))+
+  theme_bw() %+replace% large #%+replace% dark
+```

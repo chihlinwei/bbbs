@@ -328,6 +328,12 @@ sed$Porosity <- vp/(vp+vb)
 env <- cbind(loc, ctd[,-1:-5], sed[,-1:-7], tc)
 ```
 
+# Macrofauna productivity data
+
+```{r}
+mpr <- read.csv("../excel/macprodata.csv")
+```
+
 
 ```{r}
 save(mac, file="../data/mac.rda")
@@ -335,5 +341,6 @@ save(mei, file="../data/mei.rda")
 save(mac_s, file="../data/mac_s.rda")
 save(mei_s, file="../data/mei_s.rda")
 save(env, file="../data/env.rda")
+save(mpr, file="../data/mpr.rda")
 ```
 
