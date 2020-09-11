@@ -92,6 +92,12 @@ out$Density <- round(out$Density, 0)
 out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
 kable(out, align="c", caption="OR1_1102 GS4, OR1_1126 GC2, and OR1_1126 GC3 Tube 2 had very low abundance and only single replication. They are removed as outliers before plotting")
+```
+
+### Linear regression with depth
+
+```{r}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Density)~Depth, data=x) %>% summary)
 
 ggplot(data=out, 
        aes(x=Depth, y=log10(Density), 
@@ -99,7 +105,7 @@ ggplot(data=out,
            colour=Habitat, linetype=Habitat,
            shape=Habitat))+
   geom_point(size=5)+ 
-  stat_smooth(method="lm", formula=y~x, alpha=0.3)+
+  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.3)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
@@ -107,12 +113,6 @@ ggplot(data=out,
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
   #scale_y_log10()+
   theme_bw() %+replace% large #%+replace% dark
-```
-
-### Linear regression with depth
-
-```{r}
-splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Density)~Depth, data=x) %>% summary)
 ```
 
 Significant relationship between macrofauna density and water depth in the canyon.
@@ -254,13 +254,19 @@ out$Biomass <- round(out$Biomass, 0)
 out$sd <- round(out$sd, 1)
 out$se <- round(out$se, 1)
 kable(out, align="c")
+```
+
+### Linear regression with depth
+
+```{r}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x) %>% summary)
 
 ggplot(data=out, 
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
            shape=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x)+
+  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   #scale_fill_manual(values=c("black","gray"))+
@@ -269,12 +275,6 @@ ggplot(data=out,
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
   #scale_y_log10()+
   theme_bw() %+replace% large #%+replace% dark
-```
-
-### Linear regression with depth
-
-```{r}
-splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x) %>% summary)
 ```
 
 Marginal relationship between macrofauna biomass and water depth in the canyon.

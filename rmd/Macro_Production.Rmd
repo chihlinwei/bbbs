@@ -101,6 +101,8 @@ kable(out)
 
 
 ```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB.mean~Depth.mean, data=x) %>% summary)
+
 ggplot(data=out, 
        aes(x=Depth.mean, y=annual.PtoB.mean, 
            #ymin=annual.PtoB.mean-lowerCI.mean, ymax=annual.PtoB.mean+upperCI.mean,
@@ -116,12 +118,14 @@ ggplot(data=out,
 ```
 
 ```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionWt.mean)~Depth.mean, data=x) %>% summary)
+
 ggplot(data=out, 
        aes(x=Depth.mean, y=log10(productionWt.mean), 
            ymin=log10(productionWt.mean-productionWt.se), ymax=log10(productionWt.mean+productionWt.se),
            shape=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
@@ -131,12 +135,14 @@ ggplot(data=out,
 ```
 
 ```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionC.mean)~Depth.mean, data=x) %>% summary)
+
 ggplot(data=out, 
        aes(x=Depth.mean, y=log10(productionC.mean), 
            ymin=log10(productionC.mean-productionC.se), ymax=log10(productionC.mean+productionC.se),
            shape=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
@@ -146,12 +152,14 @@ ggplot(data=out,
 ```
 
 ```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionJ.mean)~Depth.mean, data=x) %>% summary)
+
 ggplot(data=out, 
        aes(x=Depth.mean, y=log10(productionJ.mean), 
            ymin=log10(productionJ.mean-productionJ.se), ymax=log10(productionJ.mean+productionJ.se),
            shape=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
