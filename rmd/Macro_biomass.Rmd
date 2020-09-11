@@ -85,12 +85,12 @@ dat.mean$Density.se <- dat.mean$Density.sd/dat.mean$Density.length^0.5
 out <- dat.mean[, c("Habitat", "Cruise", "Station", "Longitude.mean", "Latitude.mean", "Depth.mean", "Date.mean", "Density.length", "Density.mean", "Density.sd", "Density.se")]
 names(out) <- c("Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "Date", "n", "Density", "sd", "se")
 
-out$Longitude <- round(out$Longitude, 4)
-out$Latitude <- round(out$Latitude, 4)
-out$Depth <- round(out$Depth, 0)
-out$Density <- round(out$Density, 0)
-out$sd <- round(out$sd, 1)
-out$se <- round(out$se, 1)
+#out$Longitude <- round(out$Longitude, 4)
+#out$Latitude <- round(out$Latitude, 4)
+#out$Depth <- round(out$Depth, 0)
+#out$Density <- round(out$Density, 0)
+#out$sd <- round(out$sd, 1)
+#out$se <- round(out$se, 1)
 kable(out, align="c", caption="OR1_1102 GS4, OR1_1126 GC2, and OR1_1126 GC3 Tube 2 had very low abundance and only single replication. They are removed as outliers before plotting")
 ```
 
@@ -247,12 +247,12 @@ dat.mean$Biomass.se <- dat.mean$Biomass.sd/dat.mean$Biomass.length^0.5
 out <- dat.mean[, c("Habitat", "Cruise", "Station", "Longitude.mean.mean", "Latitude.mean.mean", "Depth.mean.mean", "Biomass.length", "Biomass.mean", "Biomass.sd", "Biomass.se")]
 names(out) <- c("Habitat", "Cruise", "Station", "Longitude", "Latitude", "Depth", "n", "Biomass", "sd", "se")
 
-out$Longitude <- round(out$Longitude, 4)
-out$Latitude <- round(out$Latitude, 4)
-out$Depth <- round(out$Depth, 0)
-out$Biomass <- round(out$Biomass, 0)
-out$sd <- round(out$sd, 1)
-out$se <- round(out$se, 1)
+#out$Longitude <- round(out$Longitude, 4)
+#out$Latitude <- round(out$Latitude, 4)
+#out$Depth <- round(out$Depth, 0)
+#out$Biomass <- round(out$Biomass, 0)
+#out$sd <- round(out$sd, 1)
+#out$se <- round(out$se, 1)
 kable(out, align="c")
 ```
 

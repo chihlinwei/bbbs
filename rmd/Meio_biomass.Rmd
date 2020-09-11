@@ -65,25 +65,12 @@ keep <- match(paste(dat.mean$Cruise, dat.mean$Station), paste(cord$Cruise, cord$
 dat.mean<- cbind(cord[keep, 3:9], dat.mean[, 3:6])
 names(dat.mean)[8:11] <- c("Density", "sd", "n", "se")
 
-ggplot(data= dat.mean, 
-       aes(x=Depth, y=log10(Density), ymin=log10(Density-se), ymax=log10(Density+se), colour=Habitat, linetype=Habitat, shape=Habitat))+
-  geom_point(size=5)+
-  scale_shape_manual(values=c(19,1))+
-  geom_errorbar(linetype=1)+
-  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_shape_manual(values=c(19, 1))+
-  scale_linetype_manual(values=c(1,2))+
-  labs(x="Depth (m)", y=expression(Log[10]~density~(indiv~m^-2)))+
-  #scale_y_log10()+
-  theme_bw() %+replace% large
-
-dat.mean$Longitude <- round(dat.mean$Longitude, 4)
-dat.mean$Latitude <- round(dat.mean$Latitude, 4)
-dat.mean$Depth <- round(dat.mean$Depth, 0)
-dat.mean$Density <- round(dat.mean$Density, 0)
-dat.mean$sd <- round(dat.mean$sd, 1)
-dat.mean$se <- round(dat.mean$se, 1)
+#dat.mean$Longitude <- round(dat.mean$Longitude, 4)
+#dat.mean$Latitude <- round(dat.mean$Latitude, 4)
+#dat.mean$Depth <- round(dat.mean$Depth, 0)
+#dat.mean$Density <- round(dat.mean$Density, 0)
+#dat.mean$sd <- round(dat.mean$sd, 1)
+#dat.mean$se <- round(dat.mean$se, 1)
 kable(dat.mean, align="c")
 ```
 
@@ -91,6 +78,19 @@ kable(dat.mean, align="c")
 
 ```{r}
 splitBy(~Habitat, dat.mean) %>% lapply(FUN=function(x)lm(log10(Density)~Depth, data=x) %>% summary)
+
+ggplot(data= dat.mean, 
+       aes(x=Depth, y=log10(Density), ymin=log10(Density-se), ymax=log10(Density+se), colour=Habitat, linetype=Habitat, shape=Habitat))+
+  geom_point(size=5)+
+  scale_shape_manual(values=c(19,1))+
+  geom_errorbar(linetype=1)+
+  #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
+  scale_colour_manual(values=c("black","gray30"))+
+  scale_shape_manual(values=c(19, 1))+
+  scale_linetype_manual(values=c(1,2))+
+  labs(x="Depth (m)", y=expression(Log[10]~density~(indiv~m^-2)))+
+  #scale_y_log10()+
+  theme_bw() %+replace% large
 ```
 
 No statistical relationship between meiofauna density and water depth.
@@ -182,12 +182,12 @@ ggplot(data=dat.mean.mean,
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
   theme_bw() %+replace% large #%+replace% dark
 
-dat.mean.mean$Longitude <- round(dat.mean.mean$Longitude, 4)
-dat.mean.mean$Latitude <- round(dat.mean.mean$Latitude, 4)
-dat.mean.mean$Depth <- round(dat.mean.mean$Depth, 0)
-dat.mean.mean$Density <- round(dat.mean.mean$Density, 0)
-dat.mean.mean$sd <- round(dat.mean.mean$sd, 1)
-dat.mean.mean$sd <- round(dat.mean.mean$se, 1)
+#dat.mean.mean$Longitude <- round(dat.mean.mean$Longitude, 4)
+#dat.mean.mean$Latitude <- round(dat.mean.mean$Latitude, 4)
+#dat.mean.mean$Depth <- round(dat.mean.mean$Depth, 0)
+#dat.mean.mean$Density <- round(dat.mean.mean$Density, 0)
+#dat.mean.mean$sd <- round(dat.mean.mean$sd, 1)
+#dat.mean.mean$sd <- round(dat.mean.mean$se, 1)
 kable(dat.mean.mean)
 ```
 
@@ -202,23 +202,12 @@ keep <- match(paste(dat.mean$Cruise, dat.mean$Station), paste(cord$Cruise, cord$
 out <- cbind(cord[keep, 3:9], dat.mean[, 3:6])
 names(out) <- c("Habitat",   "Cruise", "Station", "Deployment", "Longitude", "Latitude", "Depth", "Biomass", "sd", "n", "se")
 
-ggplot(data= out, 
-       aes(x=Depth, y=log10(Biomass), ymin=log10(Biomass-se), ymax=log10(Biomass+se), colour=Habitat, shape=Habitat, linetype=Habitat))+
-  geom_point(size=5)+
-  geom_errorbar(linetype=1)+
-  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_linetype_manual(values=c(1,2))+
-  scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
-  theme_bw() %+replace% large
-
-out$Longitude <- round(out$Longitude, 4)
-out$Latitude <- round(out$Latitude, 4)
-out$Depth <- round(out$Depth, 0)
-out$Biomass <- round(out$Biomass, 0)
-out$sd <- round(out$sd, 1)
-out$se <- round(out$se, 1)
+#out$Longitude <- round(out$Longitude, 4)
+#out$Latitude <- round(out$Latitude, 4)
+#out$Depth <- round(out$Depth, 0)
+#out$Biomass <- round(out$Biomass, 0)
+#out$sd <- round(out$sd, 1)
+#out$se <- round(out$se, 1)
 kable(out, align="c")
 ```
 
@@ -226,6 +215,17 @@ kable(out, align="c")
 
 ```{r}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x) %>% summary)
+
+ggplot(data= out, 
+       aes(x=Depth, y=log10(Biomass), ymin=log10(Biomass-se), ymax=log10(Biomass+se), colour=Habitat, shape=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  geom_errorbar(linetype=1)+
+  #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
+  scale_colour_manual(values=c("black","gray30"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
+  theme_bw() %+replace% large
 ```
 
 No statistical relationship between meiofauna biomass and water depth.
