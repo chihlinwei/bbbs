@@ -194,7 +194,7 @@ SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
               cbind(Class="Meio", SortWt_mei))
 ```
 
-```{r, fig.width=8, fig.height=5}
+```{r, fig.width=7, fig.height=5}
 ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -209,7 +209,7 @@ ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=
 
 Truncated normalized biomass size spectrum (NBSS) for meiofauna and macrofauna. The meiofauna with body size < 1e-03 mg, canyon meiofauna < 0.5e-03 mg, and macrofauna < 1e-02 mg were removed before fitting the NBSS using maximum likelihood method. The dashed lines indicate the lower and upper bounds of the 95% confidence interval of the fitted line. The canyon meiofauna have the steepest NBSS slope and the slope macrofauna have the most gradual NBSS slope, whereas the NBSS slope of the canyon macrofauna are similar the NBSS slope the slope meiofauna (due to overlapping confidence interval). 
 
-```{r, fig.width=8, fig.height=5}
+```{r, fig.width=7, fig.height=5}
 ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   geom_point(size=2)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -217,8 +217,8 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.UC), linetype=2)+
-  scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) format(x, scientific = T))+
-  scale_y_log10("Individual rank", limits=c(1, NA), labels = function(x) format(x, scientific = T))+
+  scale_x_log10(expression(Log[10]~Individual~weight~(mg)), labels = function(x) log10(x))+
+  scale_y_log10(expression(Log[10]~"Individual rank"), limits=c(1, NA), labels = function(x) log10(x))+
   labs(colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
 ```
@@ -227,7 +227,7 @@ Turncated abundance size spectrum for meiofauna and macrofauna. The meiofauna wi
 
 ## NBSS of all size classes but only fit larger individuals 
 
-```{r, fig.width=8, fig.height=5}
+```{r, fig.width=7, fig.height=5}
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+

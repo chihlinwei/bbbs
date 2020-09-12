@@ -331,7 +331,7 @@ env <- cbind(loc, ctd[,-1:-5], sed[,-1:-7], tc)
 # Macrofauna productivity data
 
 ```{r}
-mpr <- read.csv("../excel/macprodata.csv")
+mpr <- read.csv("../excel/prodata.csv")
 ```
 
 

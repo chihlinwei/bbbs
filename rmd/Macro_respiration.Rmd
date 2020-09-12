@@ -48,7 +48,7 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Data preparation
 
-Mass-specific meiofauna respiration rate was estimated from body mass and temperature using an empirical model, $log(R/M) = 8.3732 - 0.2073 * log(M) - 2766.0235 / T$, based on  a large database compilated for aquatic invertebrate respriation (<22000 measurements, >900 species, > 440 references) by Thomas Brey [linked phrase](http://www.thomas-brey.de/science/virtualhandbook/navlog/index.html). In the equation, R/M is the mass-specific respiration (J/J/day), M is individual body mass (J), and T is water temperature (K). 
+Mass-specific meiofauna respiration rate was estimated from body mass and temperature using an empirical model, $log(R/M) = 8.3732 - 0.2073 * log(M) - 2766.0235 / T$, based on  a large database compilated for aquatic invertebrate respriation (<22000 measurements, >900 species, > 440 references) by [Thomas Brey](http://www.thomas-brey.de/science/virtualhandbook/respir/rempirics1.html). In the equation, R/M is the mass-specific respiration (J/J/day), M is individual body mass (J), and T is water temperature (K). 
 
 ```{r}
 dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
@@ -103,9 +103,9 @@ pd <- cbind(p2b, pd[, -1:-5])
 se <- function(x) sd(x)/length(x)^0.5
 out <- summaryBy(Depth+daily.RtoM+respirationW+respirationJ+respirationC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
-out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "daily.RtoM.mean", "respirationW.mean", "respirationW.se", "respirationJ.mean", "respirationJ.se", "respirationC.mean", "respirationC.se", "Depth.length")]
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "daily.RtoM.mean", "daily.RtoM.se", "respirationW.mean", "respirationW.se", "respirationJ.mean", "respirationJ.se", "respirationC.mean", "respirationC.se", "Depth.length")]
 
-names(out) <- c("Habitat", "Cruise", "Station", "Depth", "daily.RtoM", "respirationW", "respirationW.se", "respirationJ", "respirationJ.se", "respirationC", "respirationC.se", "n")
+names(out) <- c("Habitat", "Cruise", "Station", "Depth", "daily.RtoM", "daily.RtoM.se", "respirationW", "respirationW.se", "respirationJ", "respirationJ.se", "respirationC", "respirationC.se", "n")
 
 kable(out)
 ```
@@ -117,13 +117,13 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(daily.RtoM~Depth, data=x) %>
 
 ggplot(data=out, 
        aes(x=Depth, y=daily.RtoM, 
-           #ymin=daily.RtoM-lowerCI, ymax=daily.RtoM+upperCI,
+           ymin=daily.RtoM-daily.RtoM.se, ymax=daily.RtoM+daily.RtoM.se,
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position=position_dodge(width=2))+
+  geom_point(size=5, position="jitter")+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  #geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression("Mass-specific"~respiration~(day^-1)))+
@@ -193,11 +193,11 @@ ggplot(data=out,
        aes(x=Depth, y=log10(respirationW), 
            ymin=log10(respirationW-respirationW.se), ymax=log10(respirationW+respirationW.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position=position_dodge(width=2))+
+  geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position=position_dodge(width=2))+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~respiration~(mg~m^-2~day^-1)))+
@@ -253,8 +253,8 @@ ggplot(data=out,
   geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1, position="jitter")+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~respiration~(mgC~m^-2~day^-1)))+
@@ -273,11 +273,11 @@ ggplot(data=out,
        aes(x=Depth, y=log10(respirationJ), 
            ymin=log10(respirationJ-respirationJ.se), ymax=log10(respirationJ+respirationJ.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position=position_dodge(width=2))+
+  geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position=position_dodge(width=2))+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~respiration~(J~m^-2~yr^-1)))+

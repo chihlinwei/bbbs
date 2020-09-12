@@ -85,7 +85,7 @@ ggplot(data= dat.mean,
   scale_shape_manual(values=c(19,1))+
   geom_errorbar(linetype=1)+
   #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_shape_manual(values=c(19, 1))+
   scale_linetype_manual(values=c(1,2))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(indiv~m^-2)))+
@@ -176,8 +176,8 @@ ggplot(data=dat.mean.mean,
   geom_point(size=5)+ 
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -222,10 +222,11 @@ ggplot(data= out,
   geom_point(size=5, position="dodge")+
   geom_errorbar(linetype=1, position="dodge")+
   #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
+  scale_y_continuous(labels=function(x)paste("  ", x))+
   theme_bw() %+replace% large
 ```
 
@@ -262,8 +263,8 @@ ggplot(data=out,
            shape=Habitat, fill=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_shape_manual(values=c(19,1))+
   geom_errorbar(linetype=1)+
   scale_linetype_manual(values=c(1,2))+

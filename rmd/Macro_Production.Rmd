@@ -48,7 +48,7 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Data preparation
 
-We coverted the macrofauna individual body mass (in mg weight weight) into energy content [J] using conversion factors from Brey (2010) and then estimated macrofaunal production to biomass ratio (P/B) and annual secondary production (P) from three continuous parameters (temperature, water depth, body mass) and 17 categorical parameters (5 taxa, 7 lifestyle, 4 environment, and and state of exploitation) using the Artificial Neural Network model (ANN) developed by Brey (2012). The large nematode production to biomass ratio was estimated using the following equation developed by Schwinghamer et al. (1986): $P/B = 0.073*M^{-0.337}$,  where M is individual body mass [kcal]. 
+We coverted the macrofauna individual body mass (in mg weight weight) into energy content [J] using [conversion factors](http://www.thomas-brey.de/science/DBconversion/datafiles/Conversion04.zip) from Brey (2010) and then estimated macrofaunal production to biomass ratio (P/B) and annual secondary production (P) from three continuous parameters (temperature, water depth, body mass) and 17 categorical parameters (5 taxa, 7 lifestyle, 4 environment, and and state of exploitation) using the Artificial Neural Network model (ANN) developed by Brey (2012) and available as R package [BenthicPro](https://rdrr.io/github/HenrikeAndresen/BenthicPro/man/BenthicPB.html). The large nematode production to biomass ratio was estimated using the following equation developed by Schwinghamer et al. (1986): $P/B = 0.073*M^{-0.337}$,  where M is individual body mass [kcal]. 
 
 ```{r}
 dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
@@ -110,9 +110,9 @@ dat <- subset(dat, !bad)
 se <- function(x) sd(x)/length(x)^0.5
 out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionW+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
-out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "lowerCI.mean", "upperCI.mean", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "annual.PtoB.se", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
 
-names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "lowerCI", "upperCI", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
+names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "annual.PtoB.se", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
 
 kable(out)
 ```
@@ -124,16 +124,16 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB~Depth, data=x) %
 
 ggplot(data=out, 
        aes(x=Depth, y=annual.PtoB, 
-           #ymin=annual.PtoB-lowerCI, ymax=annual.PtoB+upperCI,
+           ymin=annual.PtoB-annual.PtoB.se, ymax=annual.PtoB+annual.PtoB.se,
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position="jitter")+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  #geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Average~P/B~Ratio))+
+  labs(x="Depth (m)", y=expression(P/B~Ratio~(yr^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
@@ -198,11 +198,11 @@ ggplot(data=out,
        aes(x=Depth, y=log10(productionW), 
            ymin=log10(productionW-productionW.se), ymax=log10(productionW+productionW.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
@@ -254,11 +254,11 @@ ggplot(data=out,
        aes(x=Depth, y=log10(productionC), 
            ymin=log10(productionC-productionC.se), ymax=log10(productionC+productionC.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(mgC~m^-2~yr^-1)))+
@@ -275,11 +275,11 @@ ggplot(data=out,
        aes(x=Depth, y=log10(productionJ), 
            ymin=log10(productionJ-productionJ.se), ymax=log10(productionJ+productionJ.se),
            shape=Habitat, colour=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(J~m^-2~yr^-1)))+

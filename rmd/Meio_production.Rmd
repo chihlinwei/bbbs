@@ -86,9 +86,9 @@ pd <- cbind(p2b, pd[, -1:-6])
 se <- function(x) sd(x)/length(x)^0.5
 out <- summaryBy(Depth+annual.PtoB+productionW+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
-out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "annual.PtoB.se", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
 
-names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
+names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "annual.PtoB.se", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
 
 kable(out)
 ```
@@ -100,15 +100,15 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB~Depth, data=x) %
 
 ggplot(data=out, 
        aes(x=Depth, y=annual.PtoB, 
-           #ymin=annual.PtoB-lowerCI, ymax=annual.PtoB+upperCI,
+           ymin=annual.PtoB-annual.PtoB.se, ymax=annual.PtoB+annual.PtoB.se,
            shape=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
   #stat_smooth(method="lm", formula=y~x)+
-  #geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Average~P/B~Ratio~(year^-1)))+
+  labs(x="Depth (m)", y=expression(P/B~Ratio~(yr^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
@@ -176,8 +176,8 @@ ggplot(data=out,
   geom_point(size=5)+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
@@ -240,8 +240,8 @@ ggplot(data=out,
   geom_point(size=5)+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(mgC~m^-2~yr^-1)))+
@@ -261,8 +261,8 @@ ggplot(data=out,
   geom_point(size=5)+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
+  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(J~m^-2~yr^-1)))+
