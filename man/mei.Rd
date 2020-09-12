@@ -8,7 +8,7 @@
 A matrix includes width (W), length (L), conversition factor (C), biovolume (Size), and wet weights (Wt) of each specimen.
 }
 \description{
-Meiofauna body size data from the Gaopinc Submarine Canyon and the adjacent slope during OR1 1114 and 1126.
+Meiofauna body size data from the Gaoping Submarine Canyon and the adjacent slope during OR1 1114 and 1126.
 }
 \details{
 Meiofauna biovolume was esimated by maximum length and width of specimen based on geometric shape (e.g., cylinder, ellipsoid, cone) or bimetric conversion

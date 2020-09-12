@@ -1,6 +1,6 @@
 #' Simulated macrofauna body size
 #'
-#' Macrofauna body size data from the Gaopinc Submarine Canyon and the adjacent slope during OR1 1096, 1102, 1114, and 1126.
+#' Macrofauna body size data from the Gaoping Submarine Canyon and the adjacent slope during OR1 1096, 1102, 1114, and 1126.
 #'
 #' @details
 #' Macrofauna biovolume was esimated by maximum length and width of specimen based on geometric shape (e.g., cylinder, ellipsoid, cone) or bimetric conversion
