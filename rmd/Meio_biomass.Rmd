@@ -172,11 +172,12 @@ names(dat.mean.mean) <- c("Habitat", "Station", "Longitude", "Latitude", "Depth"
 ggplot(data=dat.mean.mean, 
        aes(x=Depth, y=log10(Density), 
            ymin=log10(Density-se), ymax=log10(Density+se),
-           colour=Habitat, linetype=Habitat, shape=Habitat))+
+           colour=Habitat, fill=Habitat, linetype=Habitat, shape=Habitat))+
   geom_point(size=5)+ 
-  stat_smooth(method="lm", formula=y~x)+
+  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
+  scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -218,8 +219,8 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x
 
 ggplot(data= out, 
        aes(x=Depth, y=log10(Biomass), ymin=log10(Biomass-se), ymax=log10(Biomass+se), colour=Habitat, shape=Habitat, linetype=Habitat))+
-  geom_point(size=5)+
-  geom_errorbar(linetype=1)+
+  geom_point(size=5, position="dodge")+
+  geom_errorbar(linetype=1, position="dodge")+
   #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
@@ -258,10 +259,11 @@ names(out) <- c("Habitat", "Station", "Longitude", "Latitude", "Depth", "n", "Bi
 ggplot(data=out, 
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
-           shape=Habitat, colour=Habitat, linetype=Habitat))+
+           shape=Habitat, fill=Habitat, colour=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x)+
+  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   scale_colour_manual(values=c("black","gray30"))+
+  scale_fill_manual(values=c("black","gray30"))+
   scale_shape_manual(values=c(19,1))+
   geom_errorbar(linetype=1)+
   scale_linetype_manual(values=c(1,2))+

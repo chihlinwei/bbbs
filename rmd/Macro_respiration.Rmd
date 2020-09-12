@@ -1,5 +1,5 @@
 ---
-title: "Macrofauna Production"
+title: "Macrofauna Respiration"
 author: "Chih-Lin Wei"
 date: "`r Sys.Date()`"
 output: 
@@ -48,7 +48,7 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Data preparation
 
-We coverted the macrofauna individual body mass (in mg weight weight) into energy content [J] using conversion factors from Brey (2010) and then estimated macrofaunal production to biomass ratio (P/B) and annual secondary production (P) from three continuous parameters (temperature, water depth, body mass) and 17 categorical parameters (5 taxa, 7 lifestyle, 4 environment, and and state of exploitation) using the Artificial Neural Network model (ANN) developed by Brey (2012). The large nematode production to biomass ratio was estimated using the following equation developed by Schwinghamer et al. (1986): $P/B = 0.073*M^{-0.337}$,  where M is individual body mass [kcal]. 
+Mass-specific meiofauna respiration rate was estimated from body mass and temperature using an empirical model, $log(R/M) = 8.3732 - 0.2073 * log(M) - 2766.0235 / T$, based on  a large database compilated for aquatic invertebrate respriation (<22000 measurements, >900 species, > 440 references) by Thomas Brey [linked phrase](http://www.thomas-brey.de/science/virtualhandbook/navlog/index.html). In the equation, R/M is the mass-specific respiration (J/J/day), M is individual body mass (J), and T is water temperature (K). 
 
 ```{r}
 dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
@@ -71,85 +71,80 @@ dat.sum$Count[keep] <- opha$Count
 # Remove Cyclopoida and Calanoida
 dat.sum <- subset(dat.sum, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
 
-# Match to marofauna production parameters
+# Match to marofauna respiration parameters
 dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
 dat.sum$Bodymass <- with(dat.sum, Wt*ConFac_j2mgwm/Count)
 dat.sum <- cbind(dat.sum, env[match(with(dat.sum, paste(Cruise, Station)), with(env, paste(Cruise, Station))), c("Temperature", "Depth")])
 dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c(-1:-3, -21)])
 
-# Calculate P/B ratio
-individualPB<-BenthicPB(dat.sum)
-
+# Calculate R/M ratio
 # Convert bodymass in J to kcal
-# Calculate nematode P/B ratio using Schwinghamer et al. (1986) equation
-nemaPB <- 0.073*(dat.sum$Bodymass/4184)^-0.337
-individualPB[dat.sum$Taxon == "Nematoda", "annual.PtoB"] <- nemaPB[dat.sum$Taxon == "Nematoda"]
+individualRM <- 8.3732-0.2073*log10(dat.sum$Bodymass)-2766.0235 /(dat.sum$Temperature+273.15)
 
-PBresults<-cbind(dat.sum,individualPB)
+RMresults<-cbind(dat.sum, daily.RtoM=10^individualRM)
 
-# annual secondary production in mulligram WM per species and sample per square meter
-PBresults$productionW <- with(PBresults, annual.PtoB*Wt/Sample.area)
+# Daily respiration in mg WM per species and sample per square meter
+RMresults$respirationW <- with(RMresults, daily.RtoM*Wt/Sample.area)
 
-# annual secondary production in Joule per species and sample per square meter
-PBresults$productionJ <- with(PBresults, productionW*ConFac_j2mgwm)
+# Daily respiration in J per species and sample per square meter
+RMresults$respirationJ <- with(RMresults, respirationW*ConFac_j2mgwm)
 
-# conversion from Joule to milligram carbon per square meter
-PBresults$productionC <- with(PBresults, productionJ/ConFac_j2mgc)
+# Daily respiration in milligram carbon per species and sample per square meter
+RMresults$respirationC <- with(RMresults, respirationJ/ConFac_j2mgc)
+
 
 # Average P/B ratio by tube
-p2b <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = mean, keep.names = TRUE)
+p2b <- summaryBy(Depth+daily.RtoM~Habitat+Cruise+Station+Deployment+Tube, data = RMresults, fun = mean, keep.names = TRUE)
 
 # Summation production by tube
-pd <- summaryBy(productionW+productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
+pd <- summaryBy(respirationW+respirationJ+respirationC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = RMresults, fun = sum, keep.names = TRUE)
 pd <- cbind(p2b, pd[, -1:-5])
 
-# Remove outlier samples with only 1 individuals
-bad <- with(pd, Count <=1 | (Cruise=="OR1_1102" & Station == "GS4") )
-dat <- subset(dat, !bad)
-
 se <- function(x) sd(x)/length(x)^0.5
-out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionW+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
+out <- summaryBy(Depth+daily.RtoM+respirationW+respirationJ+respirationC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
-out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "lowerCI.mean", "upperCI.mean", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "daily.RtoM.mean", "respirationW.mean", "respirationW.se", "respirationJ.mean", "respirationJ.se", "respirationC.mean", "respirationC.se", "Depth.length")]
 
-names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "lowerCI", "upperCI", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
+names(out) <- c("Habitat", "Cruise", "Station", "Depth", "daily.RtoM", "respirationW", "respirationW.se", "respirationJ", "respirationJ.se", "respirationC", "respirationC.se", "n")
 
 kable(out)
 ```
-# Production to biomass ratio
+# Mass-specific respiration rate
 ## Linear regression with depth
 
 ```{r, fig.height=5, fig.width=7}
-splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB~Depth, data=x) %>% summary)
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(daily.RtoM~Depth, data=x) %>% summary)
 
 ggplot(data=out, 
-       aes(x=Depth, y=annual.PtoB, 
-           #ymin=annual.PtoB-lowerCI, ymax=annual.PtoB+upperCI,
+       aes(x=Depth, y=daily.RtoM, 
+           #ymin=daily.RtoM-lowerCI, ymax=daily.RtoM+upperCI,
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position=position_dodge(width=2))+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   #geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Average~P/B~Ratio))+
+  labs(x="Depth (m)", y=expression("Mass-specific"~respiration~(day^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
+Mass-specific respiration rate declined significantly with depth in the canyon and on the slope.
+
 ## Generalized Least Squares (GLS) modeling
 
-Macrofauna P/B ratio of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna P/B.
+Mass-specific respiration of each sample were averaged by core (i.e., average of three subcores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean Mass-specific respiration rate.
 
 #### Main test
 
 ```{r}
-f <- gls(annual.PtoB ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
+f <- gls(daily.RtoM ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
 kable(summary(f)$tTable)
 kable(anova(f))
 ```
 
-Significant habitat and depth effects.
+Significant depth effects.
 
 ```{r, fig.width=12, fig.height=12}
 # Function to plot dianotics plot
@@ -185,103 +180,108 @@ dianostic_plot <-
     print(d3, split=c(3,4,3,4))
     }
 
-dianostic_plot(f, y = "annual.PtoB")
+dianostic_plot(f, y = "daily.RtoM")
 ```
 
-# Annual production wet weight per square meter
+# Daily respiration in wet weight per square meter
 ## Linear regression with depth
 
 ```{r, fig.height=5, fig.width=7}
-splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionW)~Depth, data=x) %>% summary)
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(respirationW)~Depth, data=x) %>% summary)
 
 ggplot(data=out, 
-       aes(x=Depth, y=log10(productionW), 
-           ymin=log10(productionW-productionW.se), ymax=log10(productionW+productionW.se),
+       aes(x=Depth, y=log10(respirationW), 
+           ymin=log10(respirationW-respirationW.se), ymax=log10(respirationW+respirationW.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position=position_dodge(width=2))+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
+  geom_errorbar(linetype=1, position=position_dodge(width=2))+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
+  labs(x="Depth (m)", y=expression(Log[10]~respiration~(mg~m^-2~day^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
-Macrofaunal production declined with depth on the slope. 
+
+Respiration declined with depth on the slope. 
 
 ## Generalized Least Squares (GLS) modeling
 
-Macrofauna production of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna productions.
+Macrofauna respiration of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna respiration.
 
 ## Main test
 
 ```{r}
-f <- gls(log10(productionW) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
+f <- gls(log10(respirationW) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
 kable(summary(f)$tTable)
 kable(anova(f))
 ```
 
-Significant habitat effect, but there are also significant interactions between habitat and depth.
+Significant habitat and depth effect, but there are also a significant interaction between habitat and depth.
 
 ```{r, fig.width=12, fig.height=12}
 # Dianotics plot
-dianostic_plot(f, y = "log10(productionW)")
+dianostic_plot(f, y = "log10(respirationW)")
 ```
 
 ## Pairwise tests
 
 ```{r}
 # In canyon
-f <- gls(log10(productionW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Canyon"), method = "REML")
+f <- gls(log10(respirationW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Canyon"), method = "REML")
 kable(summary(f)$tTable)
 kable(anova(f))
 # On slope
-f <- gls(log10(productionW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Slope"), method = "REML")
+f <- gls(log10(respirationW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Slope"), method = "REML")
 kable(summary(f)$tTable)
 kable(anova(f))
 ```
 
-Significant depth effect on slope
+Only significant depth effect on slope
 
-# Annual production carbon per square meter
+# Daily respiration in carbon per square meter
 ## Linear regression with depth
 
 ```{r, fig.height=5, fig.width=7}
-splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionC)~Depth, data=x) %>% summary)
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(respirationC)~Depth, data=x) %>% summary)
 
 ggplot(data=out, 
-       aes(x=Depth, y=log10(productionC), 
-           ymin=log10(productionC-productionC.se), ymax=log10(productionC+productionC.se),
+       aes(x=Depth, y=log10(respirationC), 
+           ymin=log10(respirationC-respirationC.se), ymax=log10(respirationC+respirationC.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, position="jitter")+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
+  geom_errorbar(linetype=1, position="jitter")+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Log[10]~production~(mgC~m^-2~yr^-1)))+
+  labs(x="Depth (m)", y=expression(Log[10]~respiration~(mgC~m^-2~day^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
-# Annual production J per square meter
+Respiration declined with depth on the slope. 
+
+# Daily respiration in J per square meter
 ## Linear regression with depth
 
 ```{r, fig.height=5, fig.width=7}
-splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionJ)~Depth, data=x) %>% summary)
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(respirationJ)~Depth, data=x) %>% summary)
 
 ggplot(data=out, 
-       aes(x=Depth, y=log10(productionJ), 
-           ymin=log10(productionJ-productionJ.se), ymax=log10(productionJ+productionJ.se),
-           shape=Habitat, colour=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+       aes(x=Depth, y=log10(respirationJ), 
+           ymin=log10(respirationJ-respirationJ.se), ymax=log10(respirationJ+respirationJ.se),
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, position=position_dodge(width=2))+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
+  geom_errorbar(linetype=1, position=position_dodge(width=2))+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Log[10]~production~(J~m^-2~yr^-1)))+
+  labs(x="Depth (m)", y=expression(Log[10]~respiration~(J~m^-2~yr^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
+
+Respiration declined with depth on the slope. 

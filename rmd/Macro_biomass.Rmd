@@ -102,12 +102,13 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Density)~Depth, data=x
 ggplot(data=out, 
        aes(x=Depth, y=log10(Density), 
            ymin=log10(Density-se), ymax=log10(Density+se),
-           colour=Habitat, linetype=Habitat,
+           colour=Habitat, fill=Habitat, linetype=Habitat,
            shape=Habitat))+
-  geom_point(size=5)+ 
-  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.3)+
-  geom_errorbar(linetype=1)+
+  geom_point(size=5, position = "dodge")+ 
+  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
+  geom_errorbar(linetype=1, position = "dodge")+
   scale_colour_manual(values=c("black","gray30"))+
+  scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -219,11 +220,12 @@ kable(out, align="c")
 ggplot(data=out, 
        aes(x=Depth, y=log10(Density), 
            ymin=log10(Density-se), ymax=log10(Density+se),
-           colour=Habitat, linetype=Habitat, shape=Habitat))+
-  geom_point(size=5)+ 
-  stat_smooth(method="lm", formula=y~x)+
-  geom_errorbar(linetype=1)+
+           colour=Habitat, fill=Habitat, linetype=Habitat, shape=Habitat))+
+  geom_point(size=5, position = "dodge")+ 
+  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
+  geom_errorbar(linetype=1, position = "dodge")+
   scale_colour_manual(values=c("black","gray30"))+
+  scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -264,12 +266,12 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x
 ggplot(data=out, 
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
-           shape=Habitat, colour=Habitat, linetype=Habitat))+
-  geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x)+
-  geom_errorbar(linetype=1)+
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, position = "dodge")+
+  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
+  geom_errorbar(linetype=1, position = "dodge")+
   scale_colour_manual(values=c("black","gray30"))+
-  #scale_fill_manual(values=c("black","gray"))+
+  scale_fill_manual(values=c("black","gray"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
@@ -297,8 +299,6 @@ Significant habitat effect, but there are also significant interactions between 
 # Dianotics plot
 dianostic_plot(f, y = "log10(Biomass)")
 ```
-
-
 
 #### Pairwise tests
 
@@ -334,12 +334,13 @@ kable(out, align="c")
 ggplot(data=out, 
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
-           shape=Habitat, colour=Habitat, linetype=Habitat))+
-  geom_point(size=5)+
-  stat_smooth(method="lm", formula=y~x)+
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, position = "dodge")+
+  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   scale_colour_manual(values=c("black","gray30"))+
+  scale_fill_manual(values=c("black","gray30"))+
   scale_shape_manual(values=c(19,1))+
-  geom_errorbar(linetype=1)+
+  geom_errorbar(linetype=1, position = "dodge")+
   scale_linetype_manual(values=c(1,2))+
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
   theme_bw() %+replace% large #%+replace% dark

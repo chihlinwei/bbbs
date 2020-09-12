@@ -1,5 +1,5 @@
 ---
-title: "Macrofauna Production"
+title: "Meiofauna Production"
 author: "Chih-Lin Wei"
 date: "`r Sys.Date()`"
 output: 
@@ -18,7 +18,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(bbbs)
-library(BenthicPro)
 library(ggplot2)
 library(plyr)
 library(doBy)
@@ -48,28 +47,13 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Data preparation
 
-We coverted the macrofauna individual body mass (in mg weight weight) into energy content [J] using conversion factors from Brey (2010) and then estimated macrofaunal production to biomass ratio (P/B) and annual secondary production (P) from three continuous parameters (temperature, water depth, body mass) and 17 categorical parameters (5 taxa, 7 lifestyle, 4 environment, and and state of exploitation) using the Artificial Neural Network model (ANN) developed by Brey (2012). The large nematode production to biomass ratio was estimated using the following equation developed by Schwinghamer et al. (1986): $P/B = 0.073*M^{-0.337}$,  where M is individual body mass [kcal]. 
+Meiofauna production to biomass ratio (P/B) was estimated using the following equation developed by Schwinghamer et al. (1986): $P/B = 0.073*M^{-0.337}$,  where M is individual body mass [kcal]. 
 
 ```{r}
-dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
-dat.sum <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=dat, FUN=c(sum, length))
-names(dat.sum)[-1:-6] <- c("Wt", "Count")
-dat.sum$Sample.area <- mac$Area[match(with(dat.sum, paste(Cruise, Station)), with(mac, paste(Cruise, Station)))]
-
-# Convert the numbers of polychaete specimen (with head) to abundance
-pols <- subset(mac, Taxon=="Polychaeta" & (Condition=="FH" | Condition=="C" | Condition=="FHT"))
-pola <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Count", keep.names = T)
-keep <- match(with(pola, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
-dat.sum$Count[keep] <- pola$Count
-
-# Convert the numbers of complete ophiroid specimens to abundance
-ophs <- subset(mac, Taxon=="Ophiuroidea" & Condition=="C")
-opha <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=ophs, FUN=length, var.names="Count", keep.names = T)
-keep <- match(with(opha, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
-dat.sum$Count[keep] <- opha$Count
-
-# Remove Cyclopoida and Calanoida
-dat.sum <- subset(dat.sum, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
+dat <- subset(mei, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
+dat.sum <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Subcore+Taxon, data=dat, FUN=c(sum, length))
+names(dat.sum)[-1:-7] <- c("Wt", "Count")
+dat.sum$Sample.area <- mei$Area[match(with(dat.sum, paste(Cruise, Station)), with(mei, paste(Cruise, Station)))]
 
 # Match to marofauna production parameters
 dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
@@ -78,14 +62,10 @@ dat.sum <- cbind(dat.sum, env[match(with(dat.sum, paste(Cruise, Station)), with(
 dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c(-1:-3, -21)])
 
 # Calculate P/B ratio
-individualPB<-BenthicPB(dat.sum)
-
 # Convert bodymass in J to kcal
-# Calculate nematode P/B ratio using Schwinghamer et al. (1986) equation
-nemaPB <- 0.073*(dat.sum$Bodymass/4184)^-0.337
-individualPB[dat.sum$Taxon == "Nematoda", "annual.PtoB"] <- nemaPB[dat.sum$Taxon == "Nematoda"]
+individualPB <- 0.073*(dat.sum$Bodymass/4184)^-0.337
 
-PBresults<-cbind(dat.sum,individualPB)
+PBresults<-cbind(dat.sum, annual.PtoB=individualPB)
 
 # annual secondary production in mulligram WM per species and sample per square meter
 PBresults$productionW <- with(PBresults, annual.PtoB*Wt/Sample.area)
@@ -97,22 +77,18 @@ PBresults$productionJ <- with(PBresults, productionW*ConFac_j2mgwm)
 PBresults$productionC <- with(PBresults, productionJ/ConFac_j2mgc)
 
 # Average P/B ratio by tube
-p2b <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = mean, keep.names = TRUE)
+p2b <- summaryBy(Depth+annual.PtoB~Habitat+Cruise+Station+Deployment+Tube+Subcore, data = PBresults, fun = mean, keep.names = TRUE)
 
 # Summation production by tube
-pd <- summaryBy(productionW+productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
-pd <- cbind(p2b, pd[, -1:-5])
-
-# Remove outlier samples with only 1 individuals
-bad <- with(pd, Count <=1 | (Cruise=="OR1_1102" & Station == "GS4") )
-dat <- subset(dat, !bad)
+pd <- summaryBy(productionW+productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube+Subcore, data = PBresults, fun = sum, keep.names = TRUE)
+pd <- cbind(p2b, pd[, -1:-6])
 
 se <- function(x) sd(x)/length(x)^0.5
-out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionW+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
+out <- summaryBy(Depth+annual.PtoB+productionW+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
 
-out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "lowerCI.mean", "upperCI.mean", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
 
-names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "lowerCI", "upperCI", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
+names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
 
 kable(out)
 ```
@@ -125,21 +101,20 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB~Depth, data=x) %
 ggplot(data=out, 
        aes(x=Depth, y=annual.PtoB, 
            #ymin=annual.PtoB-lowerCI, ymax=annual.PtoB+upperCI,
-           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
-  stat_smooth(method="lm", formula=y~x, alpha=0.2)+
+           shape=Habitat, colour=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
+  #stat_smooth(method="lm", formula=y~x)+
   #geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
-  scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
-  labs(x="Depth (m)", y=expression(Average~P/B~Ratio))+
+  labs(x="Depth (m)", y=expression(Average~P/B~Ratio~(year^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
 ## Generalized Least Squares (GLS) modeling
 
-Macrofauna P/B ratio of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna P/B.
+Meiofauna P/B ratio of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean meiofauna P/B ratio.
 
 #### Main test
 
@@ -149,7 +124,7 @@ kable(summary(f)$tTable)
 kable(anova(f))
 ```
 
-Significant habitat and depth effects.
+Significant habitat effects.
 
 ```{r, fig.width=12, fig.height=12}
 # Function to plot dianotics plot
@@ -198,9 +173,9 @@ ggplot(data=out,
        aes(x=Depth, y=log10(productionW), 
            ymin=log10(productionW-productionW.se), ymax=log10(productionW+productionW.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5)+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
+  geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
@@ -208,11 +183,11 @@ ggplot(data=out,
   labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
-Macrofaunal production declined with depth on the slope. 
+Meiofaunal production declined with depth on the slope. 
 
 ## Generalized Least Squares (GLS) modeling
 
-Macrofauna production of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna productions.
+Meiofauna production of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean meiofauna production.
 
 ## Main test
 
@@ -222,7 +197,7 @@ kable(summary(f)$tTable)
 kable(anova(f))
 ```
 
-Significant habitat effect, but there are also significant interactions between habitat and depth.
+Significant habitat effect, but there are also significant interactions between habitat and cruise.
 
 ```{r, fig.width=12, fig.height=12}
 # Dianotics plot
@@ -240,9 +215,17 @@ kable(anova(f))
 f <- gls(log10(productionW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Slope"), method = "REML")
 kable(summary(f)$tTable)
 kable(anova(f))
+# OR1 1114
+f <- gls(log10(productionW) ~ Habitat+Depth+Habitat:Depth, data=subset(out, Cruise=="OR1_1114"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# OR1 1126
+f <- gls(log10(productionW) ~ Habitat+Depth+Habitat:Depth, data=subset(out, Cruise=="OR1_1126"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
 ```
 
-Significant depth effect on slope
+Significant cruise effect in canyon and significant habitat effect during OR1 1126
 
 # Annual production carbon per square meter
 ## Linear regression with depth
@@ -254,9 +237,9 @@ ggplot(data=out,
        aes(x=Depth, y=log10(productionC), 
            ymin=log10(productionC-productionC.se), ymax=log10(productionC+productionC.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5)+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
+  geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
@@ -274,10 +257,10 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionJ)~Depth, da
 ggplot(data=out, 
        aes(x=Depth, y=log10(productionJ), 
            ymin=log10(productionJ-productionJ.se), ymax=log10(productionJ+productionJ.se),
-           shape=Habitat, colour=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5)+
   stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
-  geom_errorbar(linetype=1, position="dodge")+
+  geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("black","gray30"))+
   scale_fill_manual(values=c("black","gray30"))+
   scale_linetype_manual(values=c(1,2))+
