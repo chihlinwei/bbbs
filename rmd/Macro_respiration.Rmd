@@ -48,7 +48,7 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 
 # Data preparation
 
-Mass-specific meiofauna respiration rate was estimated from body mass and temperature using an empirical model, $log(R/M) = 8.3732 - 0.2073 * log(M) - 2766.0235 / T$, based on  a large database compilated for aquatic invertebrate respriation (<22000 measurements, >900 species, > 440 references) by [Thomas Brey](http://www.thomas-brey.de/science/virtualhandbook/respir/rempirics1.html). In the equation, R/M is the mass-specific respiration (J/J/day), M is individual body mass (J), and T is water temperature (K). 
+Mass-specific macrofauna respiration rate was estimated from body mass and temperature using an empirical model, $log(R/M) = 8.3732 - 0.2073 * log(M) - 2766.0235 / T$, based on  a large database compilated for aquatic invertebrate respriation (<22000 measurements, >900 species, > 440 references) by [Thomas Brey](http://www.thomas-brey.de/science/virtualhandbook/respir/rempirics1.html). In the equation, R/M is the mass-specific respiration (J/J/day), M is individual body mass (J), and T is water temperature (K). 
 
 ```{r}
 dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
