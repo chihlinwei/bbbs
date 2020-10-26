@@ -104,6 +104,7 @@ Meiofauna density of each subsample were averaged by core (i.e., average of thre
 ```{r}
 f <- gls(log10(Density) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=dat.mean, method = "REML")
 kable(summary(f)$tTable)
+kable(anova(f))
 ```
 
 No statistical effect except for the interaction between habitat and cruise.
@@ -241,6 +242,7 @@ Meiofauna biomass of each subsample were averaged by core (i.e., average of thre
 ```{r}
 f <- gls(log10(Biomass) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
 kable(summary(f)$tTable)
+kable(anova(f))
 ```
 
 Only habitat has marginal effect.

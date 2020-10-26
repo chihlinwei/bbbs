@@ -18,6 +18,7 @@ library(doBy)
 library(readxl)
 library(foreach)
 library(doSNOW)
+library(knitr)
 
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
@@ -326,6 +327,7 @@ vb <- sed$DW/2.65
 sed$Porosity <- vp/(vp+vb)
 
 env <- cbind(loc, ctd[,-1:-5], sed[,-1:-7], tc)
+kable(env)
 ```
 
 # Macrofauna productivity data
