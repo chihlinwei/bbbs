@@ -268,7 +268,7 @@ ggplot(data=out,
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5, position = "dodge")+
-  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
+  #stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1, position = "dodge")+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("black","gray"))+
