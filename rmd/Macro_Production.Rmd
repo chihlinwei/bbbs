@@ -240,6 +240,22 @@ kable(anova(f))
 f <- gls(log10(productionW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Slope"), method = "REML")
 kable(summary(f)$tTable)
 kable(anova(f))
+# GC1 and GS1
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC1"|Station=="GS1"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC2 and GS2
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC2"|Station=="GS2"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC3 and GS3
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC3"|Station=="GS3"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC4 and GS4
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC4"|Station=="GS4"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
 ```
 
 Significant depth effect on slope
