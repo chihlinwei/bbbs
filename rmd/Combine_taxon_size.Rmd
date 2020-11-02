@@ -311,7 +311,8 @@ tc <- tc[match(id2, id1), c("Speed.mean", "Speed.max", "over20")]
 
 loc <- read_excel("../excel/GPSC_macro_sorting_2020.07.31.xlsx", sheet=1)
 loc <- subset(loc, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126")
-loc <- summaryBy(Longitude+Latitude+Depth~Cruise+Station+Habitat, data=as.data.frame(loc), FUN=mean, keep.names = TRUE)
+loc <- summaryBy(Date+Longitude+Latitude+Depth~Cruise+Station+Habitat, data=as.data.frame(loc), FUN=mean, keep.names = TRUE)
+loc$Date <- strftime(as.POSIXct(loc$Date, origin = "1970-01-01", tz = "Asia/Taipei"), format="%Y-%m-%d")
 sed <- cbind(loc, sed[, -1:-3])
 
 
