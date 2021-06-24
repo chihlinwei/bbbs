@@ -115,7 +115,7 @@ ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habita
   #scale_colour_manual(values=c("black", "gray"))+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   #scale_colour_viridis(discrete = TRUE)+
-  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg~m^-2)), colour="Benthos")+
+  labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg)), colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
