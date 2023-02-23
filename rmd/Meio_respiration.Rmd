@@ -68,7 +68,7 @@ individualRM <- 8.3732-0.2073*log10(dat.sum$Bodymass)-2766.0235 /(dat.sum$Temper
 RMresults<-cbind(dat.sum, daily.RtoM=10^individualRM)
 
 # Daily respiration in mg WM per species and sample per square meter
-RMresults$respirationW <- with(RMresults, daily.RtoM*Wt/Sample.area)
+RMresults$respirationW <- with(RMresults, daily.RtoM*Wt/(pi*(2.8/2)^2/10000))
 
 # Daily respiration in J per species and sample per square meter
 RMresults$respirationJ <- with(RMresults, respirationW*ConFac_j2mgwm)

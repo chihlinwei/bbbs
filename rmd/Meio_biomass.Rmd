@@ -57,7 +57,7 @@ jet.colors <-colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
 abun   <- read_excel("../excel/GPSC_meio_sorting_2016.08.18.xlsx", sheet=2)
 abun <- subset(abun, Cruise!="OR1_1128" & Cruise!="OR1_1132")
 abun <- summaryBy(Abundance~Cruise+Station+Station+Deployment+Tube+Subcore, data=as.data.frame(abun), FUN=sum, keep.names=T)
-abun$Density <- abun$Abundance/(pi*(2.5/2)^2/10000)
+abun$Density <- abun$Abundance/(pi*(2.8/2)^2/10000)
 dat.mean <- summaryBy(Density~Cruise+Station, data=abun, FUN=c(mean, sd, length), keep.names = TRUE)
 dat.mean$Density.se <- dat.mean$Density.sd/dat.mean$Density.length^0.5
 cord   <- read_excel("../excel/GPSC_meio_sorting_2016.08.18.xlsx", sheet=1)
@@ -197,7 +197,7 @@ kable(dat.mean.mean)
 ## Per cruise
 ```{r, fig.width=7, fig.height=5}
 dat.sum <- summaryBy(Wt~Cruise+Station+Deployment+Tube+Subcore, data=mei_s, FUN=sum, keep.names = TRUE)
-dat.sum$Biomass <- dat.sum$Wt/(pi*(2.5/2)^2/10000)
+dat.sum$Biomass <- dat.sum$Wt/(pi*(2.8/2)^2/10000)
 dat.mean <- summaryBy(Biomass~Cruise+Station, data=dat.sum, FUN=c(mean, sd, length), keep.names = TRUE)
 dat.mean$Biomass.se <- dat.mean$Biomass.sd/dat.mean$Biomass.length^0.5
 keep <- match(paste(dat.mean$Cruise, dat.mean$Station), paste(cord$Cruise, cord$Station))
