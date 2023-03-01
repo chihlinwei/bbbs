@@ -104,11 +104,11 @@ ggplot(data=out,
            ymin=log10(Density-se), ymax=log10(Density+se),
            colour=Habitat, fill=Habitat, linetype=Habitat,
            shape=Habitat))+
-  geom_point(size=5, position = "dodge")+ 
+  geom_point(size=5, stroke=1.5, position = "dodge")+ 
   stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1, position = "dodge")+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
-  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -221,11 +221,11 @@ ggplot(data=out,
        aes(x=Depth, y=log10(Density), 
            ymin=log10(Density-se), ymax=log10(Density+se),
            colour=Habitat, fill=Habitat, linetype=Habitat, shape=Habitat))+
-  geom_point(size=5, position = "dodge")+ 
+  geom_point(size=5, stroke=1.5, position = "dodge")+ 
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1, position = "dodge")+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
-  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -267,10 +267,10 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position = "dodge")+
+  geom_point(size=5, stroke=1.5, position = "dodge")+
   #stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1, position = "dodge")+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   scale_fill_manual(values=c("black","gray"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
@@ -349,10 +349,10 @@ ggplot(data=out,
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
-  geom_point(size=5, position = "dodge")+
+  geom_point(size=5, stroke=1.5, position = "dodge")+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
-  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
   scale_shape_manual(values=c(19,1))+
   geom_errorbar(linetype=1, position = "dodge")+
   scale_linetype_manual(values=c(1,2))+
@@ -387,7 +387,7 @@ isobath<- rasterToContour(r, levels=c(seq(-1800, -200, by=100), 0))
 extra <- function(...){
          panel.levelplot.raster(...)
          sp.lines(isobath, col="gray30")
-         sp.points(loc, cex=2, pch=19, col=rep(c("#e41a1c", "#4daf4a"), each=4))
+         sp.points(loc, cex=2, pch=19, col=rep(c("#f1a340", "#998ec3"), each=4))
          sp.pointLabel(loc, labels=loc$Station, cex=1.5, allowSmallOverlap=FALSE)
          SpatialPolygonsRescale(layout.scale.bar(), offset=c(120.28, 22.46), scale = 10/(111.321*cos(22.46*pi/180)), fill = c("white","black"), col = "black")
          sp.text(loc = c(120.28, 22.475), "0")
@@ -406,7 +406,7 @@ b <- SpatialPolygons(list(Polygons(list(Polygon(cbind(lon, lat))), 1)))
 extra <- function(...){
          panel.levelplot.raster(...)
          sp.polygons(b, col="#e41a1c", lty=2)
-         sp.points(loc, cex=0.5, pch=19, col=rep(c("#e41a1c", "#4daf4a"), each=4))
+         sp.points(loc, cex=0.5, pch=19, col=rep(c("#f1a340", "#998ec3"), each=4))
          SpatialPolygonsRescale(layout.scale.bar(), offset=c(119.7, 25), scale = 100/(111.321*cos(22.46*pi/180)), fill = c("white","black"), col = "black")
          sp.text(loc = c(119.7, 25.2), "0")
          sp.text(loc = c(120.7, 25.2), "100 km")

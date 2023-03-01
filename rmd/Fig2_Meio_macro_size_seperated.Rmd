@@ -98,10 +98,10 @@ nbss <- rbind(cbind(Class="Macro", nbss_mac),
 
 
 ggplot(data=hab, 
-       aes(x=log10(Wt), fill=Class, size=Habitat, linetype=Habitat))+
+       aes(x=log10(Wt), fill=Habitat, size=Class, linetype=Class))+
   geom_density(alpha=0.5)+
   scale_size_manual(values=c(1.5,1))+
-  scale_fill_manual(values=c("#d8b365", "#5ab4ac"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
   #scale_fill_viridis(discrete = TRUE)+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)), fill="Benthos", size="Habitat")+
   #facet_wrap(~Class)+
@@ -111,12 +111,12 @@ ggplot(data=hab,
 Kernel density estimate of the log10 body size for meiofauna and macrofauna.  
 
 ```{r, fig.width=7, fig.height=5}
-(f2a <- ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habitat))+
-  geom_point(size=5)+
+(f2a <- ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Habitat, shape=Class))+
+  geom_point(size=5, stroke=1.5)+
   geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
   #scale_colour_manual(values=c("black", "gray"))+
-  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   #scale_colour_viridis(discrete = TRUE)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg)), colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
@@ -126,12 +126,12 @@ Kernel density estimate of the log10 body size for meiofauna and macrofauna.
 Biomass size spectrum for meiofauna and macrofauna. 
 
 ```{r, fig.width=7, fig.height=5}
-(f2b <- ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
-  geom_point(size=5)+
+(f2b <- ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat, shape=Class))+
+  geom_point(size=5, stroke=1.5)+
   geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
   #scale_colour_manual(values=c("black", "gray"))+
-  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   #scale_colour_viridis(discrete = TRUE)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass), colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
@@ -200,9 +200,9 @@ SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
 ```
 
 ```{r, fig.width=7, fig.height=5}
-(f2c <- ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
-  geom_point(size=5)+
-  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
+(f2c <- ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat, shape=Class))+
+  geom_point(size=5, stroke=1.5)+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   #scale_colour_viridis(discrete = TRUE)+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
@@ -216,9 +216,9 @@ SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
 Truncated normalized biomass size spectrum (NBSS) for meiofauna and macrofauna. The meiofauna with body size < 1e-03 mg, canyon meiofauna < 0.5e-03 mg, and macrofauna < 1e-02 mg were removed before fitting the NBSS using maximum likelihood method. The dashed lines indicate the lower and upper bounds of the 95% confidence interval of the fitted line. The canyon meiofauna have the steepest NBSS slope and the slope macrofauna have the most gradual NBSS slope, whereas the NBSS slope of the canyon macrofauna are similar the NBSS slope the slope meiofauna (due to overlapping confidence interval). 
 
 ```{r, fig.width=7, fig.height=5}
-(f2d <- ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
+(f2d <- ggplot(data=SortWt, aes(x=weight, y=rank, colour=Habitat, shape=Class))+
   geom_point(size=2)+
-  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
@@ -246,9 +246,9 @@ p4 <- f2d+labs(title="(D)")+no_legend
 ## NBSS of all size classes but only fit larger individuals 
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
-  geom_point(size=5)+
-  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
+ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Habitat, shape=Class))+
+  geom_point(size=5, stroke=1.5)+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   #scale_colour_viridis(discrete = TRUE)+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+

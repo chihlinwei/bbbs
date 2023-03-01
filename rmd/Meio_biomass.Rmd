@@ -81,11 +81,11 @@ splitBy(~Habitat, dat.mean) %>% lapply(FUN=function(x)lm(log10(Density)~Depth, d
 
 ggplot(data= dat.mean, 
        aes(x=Depth, y=log10(Density), ymin=log10(Density-se), ymax=log10(Density+se), colour=Habitat, linetype=Habitat, shape=Habitat))+
-  geom_point(size=5)+
+  geom_point(size=5, stroke=1.5)+
   scale_shape_manual(values=c(19,1))+
   geom_errorbar(linetype=1)+
   #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   scale_shape_manual(values=c(19, 1))+
   scale_linetype_manual(values=c(1,2))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(indiv~m^-2)))+
@@ -174,11 +174,11 @@ ggplot(data=dat.mean.mean,
        aes(x=Depth, y=log10(Density), 
            ymin=log10(Density-se), ymax=log10(Density+se),
            colour=Habitat, fill=Habitat, linetype=Habitat, shape=Habitat))+
-  geom_point(size=5)+ 
+  geom_point(size=5, stroke=1.5)+ 
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
   geom_errorbar(linetype=1)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
-  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~density~(ind~m^-2)))+
@@ -220,10 +220,10 @@ splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x
 
 (f3a <- ggplot(data= out, 
        aes(x=Depth, y=log10(Biomass), ymin=log10(Biomass-se), ymax=log10(Biomass+se), colour=Habitat, shape=Habitat, linetype=Habitat))+
-  geom_point(size=5, position="dodge")+
+  geom_point(size=5, stroke=1.5, position="dodge")+
   geom_errorbar(linetype=1, position="dodge")+
   #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
   scale_linetype_manual(values=c(1,2))+
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
@@ -265,10 +265,10 @@ ggplot(data=out,
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
            shape=Habitat, fill=Habitat, colour=Habitat, linetype=Habitat))+
-  geom_point(size=5)+
+  geom_point(size=5, stroke=1.5)+
   stat_smooth(method="lm", formula=y~x, alpha=0.2)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
-  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
   scale_shape_manual(values=c(19,1))+
   geom_errorbar(linetype=1)+
   scale_linetype_manual(values=c(1,2))+
