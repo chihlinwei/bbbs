@@ -263,7 +263,7 @@ kable(out, align="c")
 ```{r}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x) %>% summary)
 
-ggplot(data=out, 
+(f3b <- ggplot(data=out, 
        aes(x=Depth, y=log10(Biomass), 
            ymin=log10(Biomass-se), ymax=log10(Biomass+se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
@@ -277,6 +277,9 @@ ggplot(data=out,
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
   scale_y_continuous(labels=function(x)paste("  ", x))+
   theme_bw() %+replace% large #%+replace% dark
+  )
+
+save(f3b, file="../rds/f3b.rds")
 ```
 
 Marginal relationship between macrofauna biomass and water depth in the canyon.
@@ -404,6 +407,9 @@ extra <- function(...){
          panel.levelplot.raster(...)
          sp.polygons(b, col="#e41a1c", lty=2)
          sp.points(loc, cex=0.5, pch=19, col=rep(c("#e41a1c", "#4daf4a"), each=4))
+         SpatialPolygonsRescale(layout.scale.bar(), offset=c(119.7, 25), scale = 100/(111.321*cos(22.46*pi/180)), fill = c("white","black"), col = "black")
+         sp.text(loc = c(119.7, 25.2), "0")
+         sp.text(loc = c(120.7, 25.2), "100 km")
 }
 tbspplot(r, panel=extra)
 ```

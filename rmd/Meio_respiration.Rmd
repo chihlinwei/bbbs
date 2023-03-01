@@ -93,18 +93,19 @@ names(out) <- c("Habitat", "Cruise", "Station", "Depth", "daily.RtoM", "daily.Rt
 
 kable(out)
 ```
+
 # Mass-specific respiration rate
 ## Linear regression with depth
 
 ```{r, fig.height=5, fig.width=7}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(daily.RtoM~Depth, data=x) %>% summary)
 
-ggplot(data=out, 
+(f5a <- ggplot(data=out, 
        aes(x=Depth, y=daily.RtoM, 
            ymin=daily.RtoM-daily.RtoM.se, ymax=daily.RtoM+daily.RtoM.se,
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Canyon"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -112,6 +113,9 @@ ggplot(data=out,
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression("Mass-specific"~respiration~(day^-1)))+
   theme_bw() %+replace% large #%+replace% dark
+)
+
+save(f5a, file="../rds/f5a.rds")
 ```
 
 Mass-specific respiration rate declined significantly with depth in the canyon but only marginally on the slope.
@@ -173,12 +177,12 @@ dianostic_plot(f, y = "daily.RtoM")
 ```{r, fig.height=5, fig.width=7}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(respirationW)~Depth, data=x) %>% summary)
 
-ggplot(data=out, 
+(f5c <- ggplot(data=out, 
        aes(x=Depth, y=log10(respirationW), 
            ymin=log10(respirationW-respirationW.se), ymax=log10(respirationW+respirationW.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -186,6 +190,9 @@ ggplot(data=out,
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~respiration~(mg~m^-2~day^-1)))+
   theme_bw() %+replace% large #%+replace% dark
+)
+
+save(f5c, file="../rds/f5c.rds")
 ```
 
 Respiration declined with depth on the slope. 
@@ -243,7 +250,7 @@ ggplot(data=out,
            ymin=log10(respirationC-respirationC.se), ymax=log10(respirationC+respirationC.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -265,7 +272,7 @@ ggplot(data=out,
            ymin=log10(respirationJ-respirationJ.se), ymax=log10(respirationJ+respirationJ.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+

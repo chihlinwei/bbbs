@@ -37,6 +37,7 @@ large <- theme(legend.title = element_text(size=20),
         axis.text = element_text(size=20))
 
 rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+no_legend <- theme(legend.position = "none")
 
 # dark theme for ggplot
 dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
@@ -67,10 +68,10 @@ Temperature, salinity, dissolved oxygen concentration, fluorescence, and light t
 
 ```{r}
 # Normalized enivronmental data to mean zero and unit variance
-es <- as.data.frame(scale(env[, c(-1:-6, -11, -19:-21, -24)]))
+es <- as.data.frame(scale(env[, c(-1:-6, -11, -14)]))
 names(es)[13] <- "Spd"
 # Calculate absolute correlation coefficient
-co <- as.dist(matrix(1, nrow=14, ncol=14)-abs(cor(es, use="pairwise.complete.obs")))
+co <- as.dist(matrix(1, nrow=19, ncol=19)-abs(cor(es, use="pairwise.complete.obs")))
 hc <- hclust(co, method="average")
 
 # Convert dendrogram to ggplot style
@@ -79,6 +80,8 @@ ghc    <- dendro_data(dhc, type="rectangle")
 
 ggdendrogram(hc, rotate = FALSE)+
   geom_hline(yintercept=0.1, linetype=2, colour="red")
+
+env$Strata <- cut(env$Depth, breaks=c(200, 400, 600, 800, 1100), labels=c("200-400", "400-600", "600-800", "800-1100"))
 ```
 
 To avoid auto-correlations, redundant environmental variables (correlations > 0.9) were removed. For example, the bottom water temperature, density, and dissolved oxygen measured in this study were highly correlated. Therefore, the dissolved oxygen was not retained because the bottom dissolved oxygen concentration never dropped below the threshold of hypoxia (2 mg/L), presumably, due to turbulence mixing by internal tides. The density was not retained because it’s not an important factor known to affect infauna assemblages. Only the ecologically relevant variables, including bottom water temperature, salinity, light transmission, percent sand, silt and clay, sediment TOC and C/N ratio, porosity, mean bottom current velocity, and duration of bottom current velocity exceeding 20 cm/s were retained for the analysis. These variables were logarithm (base of 10) transformed, centered (subtracted from the mean), and normalized (divided by the standard deviation) prior to use in statistical analyses involving environmental variables.
@@ -99,6 +102,7 @@ fr <- strsplit(row.names(mei_sc), split="_") %>%ldply
 fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
 names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Subcore", "Depth")
 fr$Depth <- as.numeric(fr$Depth)
+fr$Strata <- cut(fr$Depth, breaks=c(200, 400, 600, 800, 1100), labels=c("200-400", "400-600", "600-800", "800-1100"))
 
 # Hierarchical Clustering based on square root transformed abundance data 
 # Agglomeration used group average (= UPGMA) method
@@ -127,18 +131,20 @@ stress <- paste("Stress = ", deparse(round(mei_md$stress,2)))
 mei_wa <- wascores(mei_md$points, mei_sc^0.25) %>% as.data.frame
 mei_wa$label <- row.names(mei_wa) %>% as.numeric
 
-ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
+(f6a <- ggplot(data=cbind(mei_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat, shape))+
   stat_ellipse(type="norm", geom="polygon", alpha=0.2)+
-  geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  geom_point(alpha=0.8, size=5, colour=gray(0, 0.2), aes(shape=Strata))+
   #geom_point(data=cbind(mei_md$points, fr) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
   #scale_color_viridis(discrete = TRUE)+
   #scale_fill_viridis(discrete = TRUE)+
   scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
-  annotate("text", x=-1, y=1, label=stress, size=5) +
+  scale_shape_manual(values=21:24)+
+  annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
   geom_label_repel(data=mei_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
+)
 ```
 
 The nMDS shows biomass-size composition of meiofauna. Labels show the weighted averages scores for each log2 size bin (MDS score weighted by biomass in each size bin) and the text inside label indicates the log10 of the mid point of the size class. We can clearly see that canyon were dominated by the smaller size bins.
@@ -262,11 +268,11 @@ fit <- envfit(mei_md$points, es[keep, c("over20", "TOC", "Porosity", "Clay", "Si
 lab <- data.frame(fit$vectors$arrows*1.2)
 lab$label <- c("Over20", "TOC", "Por", "Clay", "Silt", "Temp")
 
-ggplot(data=cbind(mei_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
-  geom_point(aes(fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+(f6b <- ggplot(data=cbind(mei_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
+  geom_point(aes(fill=Habitat, colour=Habitat, shape=Strata), alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mei_md$points, enve) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
   stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
-  annotate("text", x=-1, y=1, label=stress, size=5)+
+  annotate("text", x=-1.2, y=1.2, label=stress, size=5)+
   geom_segment(data=lab, aes(x=0, y=0, xend=MDS1, yend=MDS2), size=1, arrow = arrow(length = unit(0.2,"cm")), colour=viridis(3, 0.6)[2])+
   geom_label_repel(data=lab, aes(label=label), fill=viridis(3, 0.6)[2],
              colour="white", size=5, label.padding = unit(0.2, "lines"))+
@@ -274,7 +280,9 @@ ggplot(data=cbind(mei_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
   #scale_color_viridis(discrete = TRUE)+
   scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_shape_manual(values=21:24)+
   theme_bw() %+replace% large
+)
 ```
 
 These variables are mapped onto the same nMDS plot using their correlations with the ordination axes, showing that the canyon assemblages were characterized by increasing duration of bottom current velocity exceeding 20 cm/s (Over20) and the slope assemblages by increasing total organic carbon contents (TOC).
@@ -309,10 +317,12 @@ The biomass in each log2 size bin and sample (multicore tube) was square-root tr
 ```{r, fig.width=8.1, fig.height=5}
 mac_s$Class <- cut(mac_s$Wt, breaks=bks, labels=log10((bks[-28]+bks[-1])/2) %>% round(digits = 1))
 
-mac_sc <- acast(mac_s, Cruise+Habitat+Station+Deployment+Tube~Class, value.var = "Wt", fun.aggregate=sum)[-39,]
+mac_sc <- acast(mac_s, Cruise+Habitat+Station+Deployment+Tube+Depth~Class, value.var = "Wt", fun.aggregate=sum)[-39,]
 fr <- strsplit(row.names(mac_sc), split="_") %>%ldply
 fr <- cbind(paste(fr$V1, fr$V2, sep="_"), fr[,-1:-2])
-names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube")
+names(fr) <- c("Cruise", "Habitat", "Station", "Deployment", "Tube", "Depth")
+fr$Depth <- as.numeric(fr$Depth)
+fr$Strata <- cut(fr$Depth, breaks=c(200, 400, 600, 800, 1100), labels=c("200-400", "400-600", "600-800", "800-1100"))
 
 # Hierarchical Clustering based on square root transformed abundance data 
 # Agglomeration used group average (= UPGMA) method
@@ -342,17 +352,19 @@ mac_wa <- wascores(mac_md$points, mac_sc^0.25) %>% as.data.frame
 mac_wa$label <- row.names(mac_wa) %>% as.numeric
 
 
-ggplot(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
+(f6c <- ggplot(data=cbind(mac_md$points, fr), aes(x=MDS1, y=MDS2, fill=Habitat, colour=Habitat))+
   stat_ellipse(type="norm", geom="polygon", alpha=0.2)+
-  geom_point(pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+  geom_point(alpha=0.8, size=5, colour=gray(0, 0.2), aes(shape=Strata))+
   #scale_color_viridis(discrete = TRUE)+
   #scale_fill_viridis(discrete = TRUE)+
   scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_shape_manual(values=21:24)+
   annotate("text", x=-1.2, y=1.2, label=stress, size=5) +
   geom_label_repel(data=mac_wa, aes(x=MDS1, y=MDS2, label=label), colour="black", 
              fill=gray(1, 0.6), size=4, label.padding = unit(0.2, "lines"), parse = TRUE)+
   theme_bw() %+replace% large
+)
 ```
 
 The nMDS shows biomass-size composition of macrofauna. Labels show the weighted averages scores for each log2 size bin (MDS score weighted by biomass in each size bin) and the text inside label indicates the log10 of the mid point of the size class. We can clearly see that the weighted average mds scores (by size-bin biomass) concentrated on the slope. This indicates that biomass of all size bins were much higher on the slope than in the canyon. 
@@ -476,8 +488,8 @@ fit <- envfit(mac_md$points, es[keep, c("Spd", "over20", "CN", "transmissometer"
 lab <- data.frame(fit$vectors$arrows*1.2)
 lab$label <- c("Spd", "Over20", "CN", "Trans", "Por", "Silt", "Temp")
 
-ggplot(data=cbind(mac_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
-  geom_point(aes(fill=Habitat, colour=Habitat), pch=21, alpha=0.8, size=5, colour=gray(0, 0.2))+
+(f6d <- ggplot(data=cbind(mac_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
+  geom_point(aes(fill=Habitat, colour=Habitat, shape=Strata), alpha=0.8, size=5, colour=gray(0, 0.2))+
   #geom_point(data=cbind(mei_md$points, enve) %>% subset(Cruise=="OR1_1114"), pch=21, size=2, fill="white", colour="black")+
   stat_ellipse(type="norm", geom = "polygon", alpha = 0.2, aes(colour=Habitat, fill=Habitat))+
   annotate("text", x=-1.2, y=1.2, label=stress, size=5)+
@@ -488,7 +500,9 @@ ggplot(data=cbind(mac_md$points, env[keep,]), aes(x=MDS1, y=MDS2))+
   #scale_color_viridis(discrete = TRUE)+
   scale_color_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_shape_manual(values=21:24)+
   theme_bw() %+replace% large
+)
 ```
 
 These variables are mapped onto the same nMDS plot using their correlations with the ordination axes, showing that the canyon assemblages were characterized by increasing mean bottom current velocity (Spd) and duration of bottom current velocity exceeding 20 cm/s (Over20) and the slope assemblages by increasing total organic carbon to total nitrogen ratio (CN), bottom water light transmission (Trans), sediment porosity (Por) and silt contents (Silt).
@@ -511,3 +525,16 @@ kable(f$aov.tab)
 ```
 
 Only significant habitat effect was detected by PERMANOVA. No statistical effect of cruise and depth.
+
+```{r, fig.width=16, fig.height=10}
+library(patchwork)
+
+p1 <- f6a+labs(title="(A)")+no_legend
+p2 <- f6b+labs(title="(B)")
+p3 <- f6c+labs(title="(C)")+no_legend
+p4 <- f6d+labs(title="(D)")+no_legend
+
+(p1+p2)/(p3+p4)
+
+
+```

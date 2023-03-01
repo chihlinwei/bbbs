@@ -98,7 +98,7 @@ kable(out)
 ```{r, fig.height=5, fig.width=7}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB~Depth, data=x) %>% summary)
 
-ggplot(data=out, 
+(f4a <- ggplot(data=out, 
        aes(x=Depth, y=annual.PtoB, 
            ymin=annual.PtoB-annual.PtoB.se, ymax=annual.PtoB+annual.PtoB.se,
            shape=Habitat, colour=Habitat, linetype=Habitat))+
@@ -110,6 +110,9 @@ ggplot(data=out,
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(P/B~Ratio~(yr^-1)))+
   theme_bw() %+replace% large #%+replace% dark
+)
+
+save(f4a, file="../rds/f4a.rds")
 ```
 
 ## Generalized Least Squares (GLS) modeling
@@ -169,12 +172,12 @@ dianostic_plot(f, y = "annual.PtoB")
 ```{r, fig.height=5, fig.width=7}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionW)~Depth, data=x) %>% summary)
 
-ggplot(data=out, 
+(f4c <- ggplot(data=out, 
        aes(x=Depth, y=log10(productionW), 
            ymin=log10(productionW-productionW.se), ymax=log10(productionW+productionW.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -183,6 +186,9 @@ ggplot(data=out,
   scale_y_continuous(breaks=seq(2, 5, by=0.5))+
   labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
   theme_bw() %+replace% large #%+replace% dark
+)
+
+save(f4c, file="../rds/f4c.rds")
 ```
 Meiofaunal production declined with depth on the slope. 
 
@@ -239,7 +245,7 @@ ggplot(data=out,
            ymin=log10(productionC-productionC.se), ymax=log10(productionC+productionC.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
@@ -260,7 +266,7 @@ ggplot(data=out,
            ymin=log10(productionJ-productionJ.se), ymax=log10(productionJ+productionJ.se),
            shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
   geom_point(size=5)+
-  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2)+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
   geom_errorbar(linetype=1)+
   scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
   scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+

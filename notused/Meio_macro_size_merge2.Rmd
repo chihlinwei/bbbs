@@ -34,6 +34,7 @@ large <- theme(legend.title = element_text(size=20),
         axis.text = element_text(size=20))
 
 rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+no_legend <- theme(legend.position = "none")
 
 # dark theme for ggplot
 dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
@@ -97,31 +98,32 @@ ggplot(data=hab[,1:32],
        aes(x=log10(Wt), fill=paste(Class, Habitat, sep=","), size=paste(Class, Habitat, sep=",")))+
   geom_density(alpha=0.5)+
   scale_size_manual(values=c(1,2,1,2))+
-  scale_fill_manual(values=c("#e41a1c", "#e41a1c", "#4daf4a", "#4daf4a"))+
+  scale_fill_manual(values=c("#d8b365", "#d8b365", "#5ab4ac", "#5ab4ac"))+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)), fill="Size class, habitat", size="Size class, habitat")+
   #facet_wrap(~Habitat)+
   theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habitat))+
+(f2a <- ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
   #scale_colour_manual(values=c("black", "gray"))+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg)))+
   scale_y_continuous(breaks=seq(-4, 2, by=2))+
   theme_bw() %+replace% large #%+replace% dark
-
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
+)
+(f2b <- ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
   #scale_colour_manual(values=c("black", "gray"))+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
 ## Macrofauna size classes > 1e-02 and meiofauna size classes > 1e-03
@@ -184,21 +186,22 @@ SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
 ```
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
+(f2c <- ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.LC)), linetype=2)+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass))+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
+(f2d <- ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   geom_point(size=2)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
@@ -206,6 +209,16 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   scale_x_log10(expression(Individual~weight~(mg)), labels = function(x) log10(x))+
   scale_y_log10(expression(Log[10]~"Individual rank"), limits=c(1, NA), labels = function(x) log10(x))+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
+```{r, fig.width=14, fig.height=10}
+library(patchwork)
 
+p1 <- f2a+labs(title="(A)")+no_legend
+p2 <- f2b+labs(title="(B)")
+p3 <- f2c+labs(title="(C)")+no_legend
+p4 <- f2d+labs(title="(D)")+no_legend
+
+(p1+p2)/(p3+p4)
+```

@@ -218,7 +218,7 @@ kable(out, align="c")
 ```{r}
 splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(Biomass)~Depth, data=x) %>% summary)
 
-ggplot(data= out, 
+(f3a <- ggplot(data= out, 
        aes(x=Depth, y=log10(Biomass), ymin=log10(Biomass-se), ymax=log10(Biomass+se), colour=Habitat, shape=Habitat, linetype=Habitat))+
   geom_point(size=5, position="dodge")+
   geom_errorbar(linetype=1, position="dodge")+
@@ -228,7 +228,9 @@ ggplot(data= out,
   scale_shape_manual(values=c(19,1))+
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
   scale_y_continuous(labels=function(x)paste("  ", x))+
-  theme_bw() %+replace% large
+  theme_bw() %+replace% large)
+
+save(f3a, file="../rds/f3a.rds")
 ```
 
 No statistical relationship between meiofauna biomass and water depth.

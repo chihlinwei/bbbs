@@ -35,6 +35,9 @@ large <- theme(legend.title = element_text(size=20),
         axis.text = element_text(size=20))
 
 rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+no_strip <- theme(strip.background = element_rect(colour=NA, fill=NA),
+                  strip.text = element_text(colour=NA))
+no_legend <- theme(legend.position = "none")
 
 # dark theme for ggplot
 dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
@@ -98,7 +101,7 @@ ggplot(data=hab,
        aes(x=log10(Wt), fill=Class, size=Habitat, linetype=Habitat))+
   geom_density(alpha=0.5)+
   scale_size_manual(values=c(1.5,1))+
-  scale_fill_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_fill_manual(values=c("#d8b365", "#5ab4ac"))+
   #scale_fill_viridis(discrete = TRUE)+
   labs(y="Frequency", x=expression(Log[10]~body~size~(mg)), fill="Benthos", size="Habitat")+
   #facet_wrap(~Class)+
@@ -108,29 +111,31 @@ ggplot(data=hab,
 Kernel density estimate of the log10 body size for meiofauna and macrofauna.  
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habitat))+
+(f2a <- ggplot(data=nbss,aes(x=log10binMid, y=log10totalBiom, colour=Class, shape=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
   #scale_colour_manual(values=c("black", "gray"))+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   #scale_colour_viridis(discrete = TRUE)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~biomass~(mg)), colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
 Biomass size spectrum for meiofauna and macrofauna. 
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
+(f2b <- ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
   geom_path(size=1)+
   scale_shape_manual(values=c(19, 1))+
   #scale_colour_manual(values=c("black", "gray"))+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   #scale_colour_viridis(discrete = TRUE)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass), colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
 Normalized biomass size spectrum for meiofauna and macrofauna. Unimodal shape indicates trophic structure or missing smallest and the largest individuals (sampling effect)?
@@ -195,9 +200,9 @@ SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
 ```
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
+(f2c <- ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   #scale_colour_viridis(discrete = TRUE)+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
@@ -205,14 +210,15 @@ ggplot(data=nbss2, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB.UC)), linetype=2)+
   labs(x=expression(Log[10]~"mid-point of"~size~class~(mg)), y=expression(Log[10]~normalized~biomass), colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
 Truncated normalized biomass size spectrum (NBSS) for meiofauna and macrofauna. The meiofauna with body size < 1e-03 mg, canyon meiofauna < 0.5e-03 mg, and macrofauna < 1e-02 mg were removed before fitting the NBSS using maximum likelihood method. The dashed lines indicate the lower and upper bounds of the 95% confidence interval of the fitted line. The canyon meiofauna have the steepest NBSS slope and the slope macrofauna have the most gradual NBSS slope, whereas the NBSS slope of the canyon macrofauna are similar the NBSS slope the slope meiofauna (due to overlapping confidence interval). 
 
 ```{r, fig.width=7, fig.height=5}
-ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
+(f2d <- ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   geom_point(size=2)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB))+
   geom_path(data=plb, aes(x=x.PLB, y=y.PLB.LC), linetype=2)+
@@ -221,16 +227,28 @@ ggplot(data=SortWt, aes(x=weight, y=rank, colour=Class, shape=Habitat))+
   scale_y_log10(expression(Log[10]~"Individual rank"), limits=c(1, NA), labels = function(x) log10(x))+
   labs(colour="Benthos")+
   theme_bw() %+replace% large #%+replace% dark
+)
 ```
 
 Turncated abundance size spectrum for meiofauna and macrofauna. The meiofauna with body size < 1e-03 mg, canyon meiofauna < 0.5e-03 mg, and macrofauna < 1e-02 mg were removed before fitting the NBSS using maximum likelihood method. The dashed lines indicate the lower and upper bounds of the 95% confidence interval of the fitted line.
+
+```{r, fig.width=14, fig.height=10}
+library(patchwork)
+
+p1 <- f2a+labs(title="(A)")+no_legend
+p2 <- f2b+labs(title="(B)")
+p3 <- f2c+labs(title="(C)")+no_legend
+p4 <- f2d+labs(title="(D)")+no_legend
+
+(p1+p2)/(p3+p4)
+```
 
 ## NBSS of all size classes but only fit larger individuals 
 
 ```{r, fig.width=7, fig.height=5}
 ggplot(data=nbss, aes(x=log10binMid, y=log10totalBiomNorm, colour=Class, shape=Habitat))+
   geom_point(size=5)+
-  scale_colour_manual(values=c("#e41a1c", "#4daf4a"))+
+  scale_colour_manual(values=c("#d8b365", "#5ab4ac"))+
   #scale_colour_viridis(discrete = TRUE)+
   scale_shape_manual(values=c(19, 1))+
   geom_path(data=plb, aes(x=log10(x.PLB), y=log10(B.PLB)))+
