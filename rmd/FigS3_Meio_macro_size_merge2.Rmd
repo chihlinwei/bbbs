@@ -140,7 +140,7 @@ nbss_mac <- cbind(info, nbss[, -1])
 
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
+(macb <- lapply(out, FUN=function(x)x[1:2]%>%unlist)%>%ldply(.id="Habitat"))
 plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -164,7 +164,7 @@ nbss_mei <- cbind(info, nbss[, -1])
 
 out <- lapply(wt, FUN=MLE.method)
 # size specutrum slope estimate by MLE
-lapply(out, FUN=function(x)x[1:2])
+(meib <- lapply(out, FUN=function(x)x[1:2]%>%unlist)%>%ldply(.id="Habitat"))
 plb <- ldply(lapply(out, FUN=function(x)x$PLB))
 info <- ldply(strsplit(plb$.id, split="[|]"))
 names(info) <- "Habitat"
@@ -183,6 +183,23 @@ plb <- rbind(cbind(Class="Macro", plb_mac),
               cbind(Class="Meio", plb_mei))
 SortWt <- rbind(cbind(Class="Macro", SortWt_mac),
               cbind(Class="Meio", SortWt_mei))
+```
+
+```{r}
+b <- rbind(cbind(Class="Meiofauna", meib), cbind(Class="Macrofauna", macb))
+b$Class <- factor(b$Class, levels=c("Meiofauna", "Macrofauna"))
+b$Habitat <- factor(b$Habitat, levels=c("Canyon", "Slope"))
+
+ggplot(data=b, 
+       aes(x=Habitat, y=PLB.bMLE, ymin=PLB.MLE.bConf1, ymax=PLB.MLE.bConf2, colour=Habitat, fill=Habitat))+
+  geom_bar(stat = "identity")+
+  geom_errorbar()+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
+  labs(y="NBSS Slope", x="")+
+  scale_y_reverse()+
+  facet_wrap(~Class)+
+  theme_bw() %+replace% large #%+replace% dark
 ```
 
 ```{r, fig.width=7, fig.height=5}

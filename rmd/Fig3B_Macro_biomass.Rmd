@@ -24,9 +24,6 @@ library(plyr)
 library(doBy)
 library(readxl)
 library(knitr)
-library(swtmap)
-library(TWBathyMap)
-library(maptools)
 library(nlme)
 
 large <- theme(legend.title = element_text(size=20),
@@ -359,58 +356,3 @@ ggplot(data=out,
   labs(x="Depth (m)", y=expression(Log[10]~biomass~(mg~m^-2)))+
   theme_bw() %+replace% large #%+replace% dark
 ```
-
-# Sampling map
-
-```{r, fig.height=8, fig.width=8}
-tbspplot <- 
-  function(x, ...){
-  slope <- terrain(x, opt="slope")
-  aspect <- terrain(x, opt="aspect")
-  hill <- hillShade(slope, aspect, 80, 270)
-  p2 <- spplot(hill, col.regions=grey(0:100/100), cut=100, colorkey=FALSE)
-  pal <- tb.colors(x)
-  p1 <- spplot(x, col.regions=alpha(pal$col, 0.6), at=pal$breaks,
-               colorkey=list(space="top", labels=list(cex=1)),
-               scales=list(draw = TRUE, cex=1)
-               ,...)
-p1+as.layer(p2, under=T)
-}
-
-
-loc <- out
-coordinates(loc) <- c("Longitude", "Latitude")
-r <- crop(swtmap::bathy, extent(120.15, 120.45, 22.1, 22.5))
-#r <- projectRaster(r, res=0.001, crs="+proj=longlat")
-isobath<- rasterToContour(r, levels=c(seq(-1800, -200, by=100), 0))
-
-extra <- function(...){
-         panel.levelplot.raster(...)
-         sp.lines(isobath, col="gray30")
-         sp.points(loc, cex=2, pch=19, col=rep(c("#f1a340", "#998ec3"), each=4))
-         sp.pointLabel(loc, labels=loc$Station, cex=1.5, allowSmallOverlap=FALSE)
-         SpatialPolygonsRescale(layout.scale.bar(), offset=c(120.28, 22.46), scale = 10/(111.321*cos(22.46*pi/180)), fill = c("white","black"), col = "black")
-         sp.text(loc = c(120.28, 22.475), "0")
-         sp.text(loc = c(120.38, 22.475), "10 km")
-}
-tbspplot(r, panel=extra)
-```
-
-```{r, fig.height=8, fig.width=8}
-e <- extent(119.1, 122.2, 21.6, 25.5)
-r <- crop(TWBathyMap::bathy, e)
-#r <- projectRaster(r, res=0.001, crs="+proj=longlat")
-lon <- c(120.15, 120.15, 120.45, 120.45, 120.15)
-lat <- c(22.1, 22.5, 22.5, 22.1, 22.1)
-b <- SpatialPolygons(list(Polygons(list(Polygon(cbind(lon, lat))), 1)))
-extra <- function(...){
-         panel.levelplot.raster(...)
-         sp.polygons(b, col="#e41a1c", lty=2)
-         sp.points(loc, cex=0.5, pch=19, col=rep(c("#f1a340", "#998ec3"), each=4))
-         SpatialPolygonsRescale(layout.scale.bar(), offset=c(119.7, 25), scale = 100/(111.321*cos(22.46*pi/180)), fill = c("white","black"), col = "black")
-         sp.text(loc = c(119.7, 25.2), "0")
-         sp.text(loc = c(120.7, 25.2), "100 km")
-}
-tbspplot(r, panel=extra)
-```
-

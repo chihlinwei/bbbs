@@ -97,7 +97,7 @@ No statistical relationship between meiofauna density and water depth.
 
 ### Generalized Least Squares (GLS) modeling
 
-Meiofauna density of each subsample were averaged by core (i.e., average of three subsamples) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth strata, and sampling time (Cruise 1114 vs. 1126) on the mean meiofauna density.
+Meiofauna density of each subsample were averaged by core (i.e., average of three subsamples) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time (Cruise 1114 vs. 1126) on the mean meiofauna density.
 
 #### Main test
 
