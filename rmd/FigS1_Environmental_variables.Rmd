@@ -67,3 +67,17 @@ ggplot(data=env4, aes(x=Depth, y=mean, ymin=mean-se, ymax=mean+se, shape=Habitat
   facet_wrap(~variable, scales="free_y", ncol=3)+
   theme_bw()%+replace% large
 ```
+
+```{r}
+ggplot(data=subset(env4, variable=="Temp"), aes(x=Depth, y=mean, ymin=mean-se, ymax=mean+se, shape=Habitat, linetype=Habitat, colour=Habitat))+
+  geom_point(size=5, stroke=1.2)+
+  geom_path(size=1)+
+  scale_shape_manual(values=c(19,1))+
+  geom_errorbar()+
+  #stat_smooth(method="lm", formula=y~x, alpha=0.2)+
+  scale_linetype_manual(values=c(1,2))+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  labs(x="Depth (m)", y=expression("Bottom temperature"~(degree~C)))+
+  theme_bw()%+replace% large
+```
+

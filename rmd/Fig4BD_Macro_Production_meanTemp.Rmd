@@ -1,0 +1,317 @@
+---
+title: "Macrofauna Production"
+author: "Chih-Lin Wei"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###) 
+    toc_float: true
+    number_sections: true  ## if you want number sections at each table header
+    theme: united  # many options for theme, this one is my favorite.
+    highlight: tango  # specifies the syntax highlighting style
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(bbbs)
+#library(devtools)
+#install_github("HenrikeAndresen/BenthicPro")
+library(BenthicPro)
+library(ggplot2)
+library(plyr)
+library(doBy)
+library(readxl)
+library(knitr)
+library(nlme)
+
+large <- theme(legend.title = element_text(size=20),
+        legend.text = element_text(size=20),
+        axis.title = element_text(size=20),
+        axis.text = element_text(size=20))
+rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+
+# dark theme for ggplot
+dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
+        panel.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.background = element_rect(colour = 'NA', fill = 'transparent'),
+        legend.title = element_text(colour = 'white', size=20),
+        legend.text = element_text(colour = 'white', size=20),
+        axis.title = element_text(colour = 'white', size=20),
+        axis.text = element_text(colour = 'white', size=20),
+        axis.ticks = element_line(colour = 'white'),
+        panel.border = element_rect(fill = 'NA', colour = 'white'), 
+        panel.grid.major = element_line(colour = 'gray30'),
+        panel.grid.minor = element_line(colour = 'gray20'))
+```
+
+# Data preparation
+
+We coverted the macrofauna individual body mass (in mg weight weight) into energy content [J] using [conversion factors](http://www.thomas-brey.de/science/DBconversion/datafiles/Conversion04.zip) from Brey (2010) and then estimated macrofaunal production to biomass ratio (P/B) and annual secondary production (P) from three continuous parameters (temperature, water depth, body mass) and 17 categorical parameters (5 taxa, 7 lifestyle, 4 environment, and and state of exploitation) using the Artificial Neural Network model (ANN) developed by Brey (2012) and available as R package [BenthicPro](https://rdrr.io/github/HenrikeAndresen/BenthicPro/man/BenthicPB.html). The large nematode production to biomass ratio was estimated using the following equation developed by Schwinghamer et al. (1986): $P/B = 0.073*M^{-0.337}$,  where M is individual body mass [kcal]. 
+
+```{r}
+dat <- subset(mac, Cruise=="OR1_1096"|Cruise=="OR1_1102"|Cruise=="OR1_1114"|Cruise=="OR1_1126"|Cruise=="OR1_1128"|Cruise=="OR1_1132")
+dat.sum <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=dat, FUN=c(sum, length))
+names(dat.sum)[-1:-6] <- c("Wt", "Count")
+dat.sum$Sample.area <- mac$Area[match(with(dat.sum, paste(Cruise, Station)), with(mac, paste(Cruise, Station)))]
+
+# Convert the numbers of polychaete specimen (with head) to abundance
+pols <- subset(mac, Taxon=="Polychaeta" & (Condition=="FH" | Condition=="C" | Condition=="FHT"))
+pola <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=pols, FUN=length, var.names="Count", keep.names = T)
+keep <- match(with(pola, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
+dat.sum$Count[keep] <- pola$Count
+
+# Convert the numbers of complete ophiroid specimens to abundance
+ophs <- subset(mac, Taxon=="Ophiuroidea" & Condition=="C")
+opha <- summaryBy(Wt~Habitat+Cruise+Station+Deployment+Tube+Taxon, data=ophs, FUN=length, var.names="Count", keep.names = T)
+keep <- match(with(opha, paste(Cruise, Station, Deployment, Tube, Taxon)), with(dat.sum, paste(Cruise, Station, Deployment, Tube, Taxon)))
+dat.sum$Count[keep] <- opha$Count
+
+# Remove Cyclopoida and Calanoida
+dat.sum <- subset(dat.sum, !(Taxon=="Cyclopoida"|Taxon=="Calanoida"))
+
+# Match to marofauna production parameters
+dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c("ConFac_j2mgwm", "ConFac_j2mgc")])
+dat.sum$Bodymass <- with(dat.sum, Wt*ConFac_j2mgwm/Count)
+
+dat.sum <- cbind(dat.sum, env[match(with(dat.sum, paste(Cruise, Station)), with(env, paste(Cruise, Station))), c("Temperature", "Depth")])
+dat.sum <- cbind(dat.sum, mpr[match(dat.sum$Taxon, mpr$Taxon), c(-1:-3, -21)])
+
+# Replace with mean temperature by station
+temp.mean <- summaryBy(Temperature~Habitat+Station, data=env, FUN=mean, keep.names = TRUE)
+dat.sum$Temperature <- temp.mean[match(dat.sum$Station, temp.mean$Station), "Temperature"]
+
+
+# Calculate P/B ratio
+individualPB<-BenthicPB(dat.sum)
+
+# Convert bodymass in J to kcal
+# Calculate nematode P/B ratio using Schwinghamer et al. (1986) equation
+nemaPB <- 0.073*(dat.sum$Bodymass/4184)^-0.337
+individualPB[dat.sum$Taxon == "Nematoda", "annual.PtoB"] <- nemaPB[dat.sum$Taxon == "Nematoda"]
+
+PBresults<-cbind(dat.sum,individualPB)
+
+# annual secondary production in mulligram WM per species and sample per square meter
+PBresults$productionW <- with(PBresults, annual.PtoB*Wt/Sample.area)
+
+# annual secondary production in Joule per species and sample per square meter
+PBresults$productionJ <- with(PBresults, productionW*ConFac_j2mgwm)
+
+# conversion from Joule to milligram carbon per square meter
+PBresults$productionC <- with(PBresults, productionJ/ConFac_j2mgc)
+
+# Average P/B ratio by tube
+p2b <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = mean, keep.names = TRUE)
+
+# Summation production by tube
+pd <- summaryBy(productionW+productionJ+productionC+Count+Wt~Habitat+Cruise+Station+Deployment+Tube, data = PBresults, fun = sum, keep.names = TRUE)
+pd <- cbind(p2b, pd[, -1:-5])
+
+# Remove outlier samples with only 1 individuals
+bad <- with(pd, Count <=1 | (Cruise=="OR1_1102" & Station == "GS4") )
+dat <- subset(dat, !bad)
+
+se <- function(x) sd(x)/length(x)^0.5
+out <- summaryBy(Depth+annual.PtoB+lowerCI+upperCI+productionW+productionJ+productionC~Habitat+Cruise+Station, data = pd, FUN = c(mean, sd, length, se))
+
+out <- out[, c("Habitat", "Cruise", "Station", "Depth.mean", "annual.PtoB.mean", "annual.PtoB.se", "productionW.mean", "productionW.se", "productionJ.mean", "productionJ.se", "productionC.mean", "productionC.se", "Depth.length")]
+
+names(out) <- c("Habitat", "Cruise", "Station", "Depth", "annual.PtoB", "annual.PtoB.se", "productionW", "productionW.se", "productionJ", "productionJ.se", "productionC", "productionC.se", "n")
+
+kable(out)
+```
+# Production to biomass ratio
+## Linear regression with depth
+
+```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(annual.PtoB~Depth, data=x) %>% summary)
+
+(f4b <- ggplot(data=out, 
+       aes(x=Depth, y=annual.PtoB, 
+           ymin=annual.PtoB-annual.PtoB.se, ymax=annual.PtoB+annual.PtoB.se,
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, stroke=1.5, position="jitter")+
+  stat_smooth(method="lm", formula=y~x, alpha=0.2, size=1.5)+
+  geom_errorbar(linetype=1)+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(P/B~Ratio~(yr^-1)))+
+  theme_bw() %+replace% large #%+replace% dark
+)
+
+#save(f4b, file="../rds/f4b.rds")
+```
+
+## Generalized Least Squares (GLS) modeling
+
+Macrofauna P/B ratio of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna P/B.
+
+#### Main test
+
+```{r}
+f <- gls(annual.PtoB ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+```
+
+Significant habitat and depth effects.
+
+```{r, fig.width=12, fig.height=12}
+# Function to plot dianotics plot
+dianostic_plot <- 
+  function(f, y){
+    # standardized residuals versus fitted values
+    a1 <- plot(f, resid(., type = "p") ~ fitted(.) | Habitat, abline = 0)
+    a2 <- plot(f, resid(., type = "p") ~ fitted(.) | Cruise, abline = 0)
+    a3 <- plot(f, resid(., type = "p") ~ fitted(.), abline = 0)
+    # box-plots of residuals
+    b1<-plot(f, Habitat ~ resid(.))
+    b2 <- plot(f, Cruise ~ resid(.))
+    # observed versus fitted values
+    c1<-plot(f, paste(paste(y, "fitted(.)", sep="~"), "Habitat", sep="|") %>% formula, abline = c(0,1))
+    c2<-plot(f, paste(paste(y, "fitted(.)", sep="~"), "Cruise", sep="|") %>% formula, abline = c(0,1))
+    c3<-plot(f, paste(y, "fitted(.)", sep="~") %>% formula, abline = c(0,1))
+    # QQ plot
+    d1<-qqnorm(f, ~ resid(., type = "p") | Habitat, abline = c(0,1))
+    d2<-qqnorm(f, ~ resid(., type = "p") | Cruise, abline = c(0,1))
+    d3<-qqnorm(f, ~ resid(., type = "p"), abline = c(0,1))
+    
+    print(a1, split=c(1,1,3,4), more=TRUE)
+    print(a2, split=c(2,1,3,4), more=TRUE)
+    print(a3, split=c(3,1,3,4), more=TRUE)
+    print(b1, split=c(1,2,3,4), more=TRUE)
+    print(b2, split=c(2,2,3,4), more=TRUE)
+    #
+    print(c1, split=c(1,3,3,4), more=TRUE)
+    print(c2, split=c(2,3,3,4), more=TRUE)
+    print(c3, split=c(3,3,3,4), more=TRUE)
+    print(d1, split=c(1,4,3,4), more=TRUE)
+    print(d2, split=c(2,4,3,4), more=TRUE)
+    print(d3, split=c(3,4,3,4))
+    }
+
+dianostic_plot(f, y = "annual.PtoB")
+```
+
+# Annual production wet weight per square meter
+## Linear regression with depth
+
+```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionW)~Depth, data=x) %>% summary)
+
+(f4d <- ggplot(data=out, 
+       aes(x=Depth, y=log10(productionW), 
+           ymin=log10(productionW-productionW.se), ymax=log10(productionW+productionW.se),
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, stroke=1.5, position="jitter")+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~production~(mg~m^-2~yr^-1)))+
+  theme_bw() %+replace% large #%+replace% dark
+)
+
+#save(f4d, file="../rds/f4d.rds")
+```
+Macrofaunal production declined with depth on the slope. 
+
+## Generalized Least Squares (GLS) modeling
+
+Macrofauna production of each sample were averaged by station (i.e., average of three cores) before further statistical tests. We used Generalized Least Squares (GLS) modeling to examine the effects of habitat (canyon vs. slope), depth, and sampling time on the mean macrofauna productions.
+
+## Main test
+
+```{r}
+f <- gls(log10(productionW) ~ Habitat+Depth+Cruise+Habitat:Depth+Habitat:Cruise+Depth:Cruise, data=out, method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+```
+
+Significant habitat effect, but there are also significant interactions between habitat and depth.
+
+```{r, fig.width=12, fig.height=12}
+# Dianotics plot
+dianostic_plot(f, y = "log10(productionW)")
+```
+
+## Pairwise tests
+
+```{r}
+# In canyon
+f <- gls(log10(productionW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Canyon"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# On slope
+f <- gls(log10(productionW) ~ Depth+Cruise+Depth:Cruise, data=subset(out, Habitat == "Slope"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC1 and GS1
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC1"|Station=="GS1"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC2 and GS2
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC2"|Station=="GS2"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC3 and GS3
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC3"|Station=="GS3"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+# GC4 and GS4
+f <- gls(log10(productionW) ~ Habitat, data=subset(out, Station=="GC4"|Station=="GS4"), method = "REML")
+kable(summary(f)$tTable)
+kable(anova(f))
+```
+
+Significant depth effect on slope
+
+# Annual production carbon per square meter
+## Linear regression with depth
+
+```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionC)~Depth, data=x) %>% summary)
+
+ggplot(data=out, 
+       aes(x=Depth, y=log10(productionC), 
+           ymin=log10(productionC-productionC.se), ymax=log10(productionC+productionC.se),
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, stroke=1.5, position="jitter")+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~production~(mgC~m^-2~yr^-1)))+
+  theme_bw() %+replace% large #%+replace% dark
+```
+
+# Annual production J per square meter
+## Linear regression with depth
+
+```{r, fig.height=5, fig.width=7}
+splitBy(~Habitat, out) %>% lapply(FUN=function(x)lm(log10(productionJ)~Depth, data=x) %>% summary)
+
+ggplot(data=out, 
+       aes(x=Depth, y=log10(productionJ), 
+           ymin=log10(productionJ-productionJ.se), ymax=log10(productionJ+productionJ.se),
+           shape=Habitat, colour=Habitat, fill=Habitat, linetype=Habitat))+
+  geom_point(size=5, stroke=1.5, position="jitter")+
+  stat_smooth(data=subset(out, Habitat=="Slope"), method="lm", formula=y~x, alpha=0.2, size=1.5)+
+  geom_errorbar(linetype=1, position="jitter")+
+  scale_colour_manual(values=c("#f1a340", "#998ec3"))+
+  scale_fill_manual(values=c("#f1a340", "#998ec3"))+
+  scale_linetype_manual(values=c(1,2))+
+  scale_shape_manual(values=c(19,1))+
+  labs(x="Depth (m)", y=expression(Log[10]~production~(J~m^-2~yr^-1)))+
+  theme_bw() %+replace% large #%+replace% dark
+```
