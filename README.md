@@ -1,3 +1,3 @@
 # bbbs
-library(devtools)
-github_install("chihlinwei/bbbs")
+# library(devtools)
+# github_install("chihlinwei/bbbs")
