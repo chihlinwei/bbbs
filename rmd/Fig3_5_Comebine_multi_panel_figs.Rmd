@@ -16,7 +16,8 @@ library(patchwork)
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
         axis.title = element_text(size=20),
-        axis.text = element_text(size=20))
+        axis.text = element_text(size=20),
+        title = element_text(size=20))
 
 rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
 no_strip <- theme(strip.background = element_rect(colour=NA, fill=NA),
@@ -41,8 +42,8 @@ dark <- theme(plot.background = element_rect(colour = 'NA', fill = 'gray10'),
 load("../rds/f3a.rds")
 load("../rds/f3b.rds")
 
-p1 <- f3a+labs(title="(A)")+no_legend
-p2 <- f3b+labs(title="(B)")
+p1 <- f3a+labs(title="(A)")+no_legend + large
+p2 <- f3b+labs(title="(B)") + large
 p1+p2
 ```
 
@@ -52,10 +53,10 @@ load("../rds/f4b.rds")
 load("../rds/f4c.rds")
 load("../rds/f4d.rds")
 
-p1 <- f4a+labs(title="(A)")+no_legend
-p2 <- f4b+labs(title="(B)")
-p3 <- f4c+labs(title="(C)")+no_legend
-p4 <- f4d+labs(title="(D)")+no_legend
+p1 <- f4a+labs(title="(A)")+no_legend + large
+p2 <- f4b+labs(title="(B)") + large
+p3 <- f4c+labs(title="(C)")+no_legend + large
+p4 <- f4d+labs(title="(D)")+no_legend + large
 
 (p1+p2)/(p3+p4)
 ```
@@ -67,10 +68,10 @@ load("../rds/f5b.rds")
 load("../rds/f5c.rds")
 load("../rds/f5d.rds")
 
-p1 <- f5a+labs(title="(A)")+no_legend
-p2 <- f5b+labs(title="(B)")
-p3 <- f5c+labs(title="(C)")+no_legend
-p4 <- f5d+labs(title="(D)")+no_legend
+p1 <- f5a+labs(title="(A)")+no_legend + large
+p2 <- f5b+labs(title="(B)") + large
+p3 <- f5c+labs(title="(C)")+no_legend + large
+p4 <- f5d+labs(title="(D)")+no_legend + large
 
 (p1+p2)/(p3+p4)
 ```

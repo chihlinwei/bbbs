@@ -25,7 +25,8 @@ large <- theme(legend.title = element_text(size=20),
         strip.text=element_text(size=20),
         axis.title = element_text(size=20),
         axis.text.y = element_text(size=20),
-        axis.text.x = element_text(size=20, angle=60, hjust=0.5))
+        axis.text.x = element_text(size=20, angle=60, hjust=0.5),
+        title = element_text(size=20))
 
 rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
 no_legend <- theme(legend.position = "none")
