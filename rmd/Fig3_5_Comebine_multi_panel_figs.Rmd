@@ -74,3 +74,17 @@ p4 <- f5d+labs(title="(D)")+no_legend
 
 (p1+p2)/(p3+p4)
 ```
+
+```{r, fig.width=10, fig.height=12}
+load("../rds/f2a.rds")
+load("../rds/f2c.rds")
+p1 <- f2a+no_legend+dark
+p2 <- f2c+no_legend+dark
+p3 <- f4c+no_legend+dark
+p4 <- f4d+no_legend+dark
+p5 <- f5c+no_legend+dark
+p6 <- f5d+no_legend+dark
+
+(p1+p2)/(p3+p4)/(p5+p6)
+```
+
