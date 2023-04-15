@@ -34,7 +34,9 @@ library(ggdendro)
 large <- theme(legend.title = element_text(size=20),
         legend.text = element_text(size=20),
         axis.title = element_text(size=20),
-        axis.text = element_text(size=20))
+        axis.text = element_text(size=20),
+        title = element_text(size=20)
+        )
 
 rotate <- theme(axis.text.x = element_text(size=20, angle=60, hjust=0.5))
 no_legend <- theme(legend.position = "none")
